@@ -1,0 +1,128 @@
+[gd_scene load_steps=7 format=3 uid="uid://d380ca1jej6kb"]
+
+[ext_resource type="Script" uid="uid://bayaqfqnfjop0" path="res://scenes/world_map.gd" id="1_oru6e"]
+[ext_resource type="Texture2D" uid="uid://beo7olpo2ctqr" path="res://WorldMapIcon.png" id="2_qqero"]
+[ext_resource type="PackedScene" uid="uid://c7d6gi6lilrla" path="res://scenes/hero.tscn" id="3_pls23"]
+[ext_resource type="PackedScene" uid="uid://bdy2s65xlfoco" path="res://scenes/poi.tscn" id="3_qj3iy"]
+[ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="4_qj3iy"]
+[ext_resource type="Script" uid="uid://dmuloc3a6ge7u" path="res://scenes/path_preview.gd" id="4_sh0tg"]
+
+[node name="world_map" type="Node2D"]
+script = ExtResource("1_oru6e")
+
+[node name="Ground" type="ColorRect" parent="."]
+offset_right = 2560.0
+offset_bottom = 2560.0
+mouse_filter = 2
+color = Color(0.10980392, 0.43137255, 0.1254902, 1)
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_qqero")
+expand_mode = 1
+
+[node name="Obstacles" type="Node2D" parent="."]
+
+[node name="Rock1" type="ColorRect" parent="Obstacles"]
+offset_left = 448.0
+offset_top = 492.0
+offset_right = 512.0
+offset_bottom = 876.0
+mouse_filter = 2
+color = Color(1, 0, 0, 1)
+
+[node name="Rock2" type="ColorRect" parent="Obstacles"]
+offset_left = 640.0
+offset_top = 448.0
+offset_right = 832.0
+offset_bottom = 576.0
+mouse_filter = 2
+color = Color(1, 0, 0, 1)
+
+[node name="Rock3" type="ColorRect" parent="Obstacles"]
+offset_left = 256.0
+offset_top = 640.0
+offset_right = 384.0
+offset_bottom = 896.0
+mouse_filter = 2
+color = Color(1, 0, 0, 1)
+
+[node name="Points" type="Node2D" parent="."]
+
+[node name="Mine" parent="Points" instance=ExtResource("3_qj3iy")]
+position = Vector2(672, 224)
+poi_name = "Шахта"
+color = Color(0.35933852, 0.39873096, 0.4717912, 1)
+
+[node name="BanditCamp" parent="Points" instance=ExtResource("3_qj3iy")]
+position = Vector2(736, 736)
+poi_name = "Лагерь разбойников"
+color = Color(1, 0.40784314, 0, 1)
+kind = "camp"
+
+[node name="LightAltar" parent="Points" instance=ExtResource("3_qj3iy")]
+position = Vector2(224, 1056)
+poi_name = "Алтарь света"
+color = Color(0.9999998, 0.9176843, 0.6001641, 1)
+kind = "altar"
+
+[node name="PathPreview" type="Node2D" parent="."]
+script = ExtResource("4_sh0tg")
+
+[node name="Hero" parent="." instance=ExtResource("3_pls23")]
+position = Vector2(160, 160)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -73.0
+offset_top = -23.0
+offset_right = 73.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Глобальная карта"
+vertical_alignment = 1
+
+[node name="Base_Button" type="Button" parent="UI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -131.0
+offset_top = -58.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 36
+text = "Домой"
+
+[node name="Top" type="VBoxContainer" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 103.0
+grow_horizontal = 2
+
+[node name="ResourceBar" parent="UI/Top" instance=ExtResource("4_qj3iy")]
+layout_mode = 2
+
+[node name="StaminaBar" type="ProgressBar" parent="UI/Top"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+show_percentage = false
+
+[node name="MessageLabel" type="Label" parent="UI/Top"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.011764706, 1)
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1

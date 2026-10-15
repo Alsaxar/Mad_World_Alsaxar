@@ -1,0 +1,80 @@
+[gd_scene load_steps=6 format=3 uid="uid://bmldx5227le6j"]
+
+[ext_resource type="Script" uid="uid://cnapl871pckbf" path="res://base.gd" id="1_h5ip5"]
+[ext_resource type="Texture2D" uid="uid://clc4kymhj5lk7" path="res://WorldMapTexture.jpg" id="2_40w10"]
+[ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="4_hh5oj"]
+
+[sub_resource type="Gradient" id="Gradient_t45w4"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_h5ip5"]
+gradient = SubResource("Gradient_t45w4")
+
+[node name="Base" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_h5ip5")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_40w10")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -108.5
+offset_right = 200.0
+offset_bottom = 108.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="ResourceBar" parent="Layout" instance=ExtResource("4_hh5oj")]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RecruitRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Recruit1Button" type="Button" parent="Layout/RecruitRow"]
+custom_minimum_size = Vector2(240, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+
+[node name="Recruit5Button" type="Button" parent="Layout/RecruitRow"]
+custom_minimum_size = Vector2(240, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+
+[node name="MapButton" type="Button" parent="Layout"]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "Глобальная карта"
+icon = SubResource("GradientTexture1D_h5ip5")
+icon_alignment = 1
+
+[node name="BottomMargin" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2

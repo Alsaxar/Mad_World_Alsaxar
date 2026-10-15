@@ -1,0 +1,63 @@
+[gd_scene load_steps=2 format=3 uid="uid://d05o1e8maxvxy"]
+
+[ext_resource type="Script" uid="uid://kkrdhthfh51h" path="res://scenes/main_menu.gd" id="1_l6cm7"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_l6cm7")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.039215688, 0.16078432, 1, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -194.0
+offset_right = 200.0
+offset_bottom = 194.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Menu" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="TitleLabel" type="Label" parent="Center/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Mad World"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="Center/Menu"]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Продолжить"
+
+[node name="NewGameButton" type="Button" parent="Center/Menu"]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Новая игра"
+
+[node name="QuitButton" type="Button" parent="Center/Menu"]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Выход"
