@@ -2,12 +2,13 @@ extends Control
 
 @onready var map_button: Button = $Layout/MapButton
 
-
 @onready var recruit_1_button: Button = $Layout/RecruitRow/Recruit1Button
 @onready var recruit_5_button: Button = $Layout/RecruitRow/Recruit5Button
 
 func _ready() -> void:
-	GameState.new_day()
+	# Возвращение на домашний экран не должно начинать новый игровой день:
+	# иначе сбрасываются выносливость, использованные точки и позиция героя.
+	# Новый день запускается отдельно, когда будет реализован игровой календарь.
 	map_button.pressed.connect(_on_map_button_pressed)
 	recruit_1_button.pressed.connect(_on_recruit_pressed.bind(1))
 	recruit_5_button.pressed.connect(_on_recruit_pressed.bind(5))
