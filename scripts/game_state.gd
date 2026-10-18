@@ -14,6 +14,13 @@ const RECRUIT_COST := 30  # золота за одного бойца
 const SUMMON_COST := {"gold": 100, "ore": 10}  # цена призыва одного бойца
 const HEAL_COST := 10                          # золота за лечение одного бойца
 
+const GOLD_PER_HOUR := 1000.0
+const WOOD_PER_HOUR := 2000.0
+const ORE_PER_HOUR := 1500.0
+
+const SECONDS_PER_HOUR := 3600.0
+const RESOURCE_UPDATE_INTERVAL := 1.0
+
 var gold := 100
 var wood := 50
 var ore := 20
@@ -29,6 +36,114 @@ var used_points := {}  # точки, уже использованные сег�
 var battle_poi := ""   # какая точка запустила бой
 
 var current_scene := "res://scenes/base.tscn"  # где игрок остановился
+
+# Время последнего расчёта производства.
+var last_resource_update_unix: int = 0
+
+# Дробные остатки производства, чтобы не терять доход
+# при расчёте каждую секунду.
+var resource_remainders := {
+	"gold": 0.0,
+	"wood": 0.0,
+	"ore": 0.0,
+}
+
+var resource_update_timer := 0.0
+
+func _ready() -> void:
+	last_resource_update_unix = int(
+		Time.get_unix_time_from_system()
+	)
+
+
+func _process(delta: float) -> void:
+	resource_update_timer += delta
+
+	if resource_update_timer < RESOURCE_UPDATE_INTERVAL:
+		return
+
+	resource_update_timer = 0.0
+	update_resource_income()
+
+
+func hourly_income() -> Dictionary:
+	var total := {
+		"gold": 0.0,
+		"wood": 0.0,
+		"ore": 0.0,
+	}
+
+	for slot in buildings:
+		var building: Dictionary = buildings[slot]
+		var level := int(building.get("level", 1))
+
+		match str(building.get("type", "")):
+			"gold_mine":
+				total["gold"] += GOLD_PER_HOUR * level
+			"sawmill":
+				total["wood"] += WOOD_PER_HOUR * level
+			"ore_mine":
+				total["ore"] += ORE_PER_HOUR * level
+
+	return total
+
+
+func update_resource_income(now_unix: int = -1) -> void:
+	if now_unix < 0:
+		now_unix = int(Time.get_unix_time_from_system())
+
+	if last_resource_update_unix <= 0:
+		last_resource_update_unix = now_unix
+		return
+
+	var elapsed := maxi(
+		now_unix - last_resource_update_unix,
+		0
+	)
+
+	if elapsed == 0:
+		return
+
+	# Сначала фиксируем время расчёта, чтобы один и тот же
+	# промежуток времени не был начислен повторно.
+	last_resource_update_unix = now_unix
+
+	var income := hourly_income()
+	var gold_total: float = (
+		float(resource_remainders["gold"])
+		+ float(income["gold"]) * elapsed / SECONDS_PER_HOUR
+	)
+	var wood_total: float = (
+		float(resource_remainders["wood"])
+		+ float(income["wood"]) * elapsed / SECONDS_PER_HOUR
+	)
+	var ore_total: float = (
+		float(resource_remainders["ore"])
+		+ float(income["ore"]) * elapsed / SECONDS_PER_HOUR
+	)
+
+	var gold_add := floori(gold_total)
+	var wood_add := floori(wood_total)
+	var ore_add := floori(ore_total)
+
+	resource_remainders["gold"] = gold_total - gold_add
+	resource_remainders["wood"] = wood_total - wood_add
+	resource_remainders["ore"] = ore_total - ore_add
+
+	# Если ресурс достиг лимита, не копим производство
+	# сверх вместимости.
+	if gold >= resource_capacity("gold"):
+		gold_add = 0
+		resource_remainders["gold"] = 0.0
+	if wood >= resource_capacity("wood"):
+		wood_add = 0
+		resource_remainders["wood"] = 0.0
+	if ore >= resource_capacity("ore"):
+		ore_add = 0
+		resource_remainders["ore"] = 0.0
+
+	if gold_add > 0 or wood_add > 0 or ore_add > 0:
+		add_resources(gold_add, wood_add, ore_add)
 
 func resource_capacity(resource: String) -> int:
 	return BASE_RESOURCE_CAPACITY
@@ -60,6 +175,17 @@ func reset() -> void:
 	elite = 0
 	wounded = 0
 	buildings.clear()
+	last_resource_update_unix = int(
+		Time.get_unix_time_from_system()
+	)
+
+	resource_remainders = {
+		"gold": 0.0,
+		"wood": 0.0,
+		"ore": 0.0,
+	}
+
+	resource_update_timer = 0.0
 	new_day()
 	resources_changed.emit()
 
@@ -94,6 +220,8 @@ func to_dict() -> Dictionary:
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"used_points": used_points,
 		"current_scene": current_scene,
+		"last_resource_update_unix": last_resource_update_unix,
+		"resource_remainders": resource_remainders,
 	}
 
 #func load_from_dict(data: Dictionary) -> void:
@@ -142,6 +270,27 @@ func load_from_dict(data: Dictionary) -> void:
 		data.get("current_scene", "res://scenes/base.tscn")
 	)
 	battle_poi = str(data.get("battle_poi", ""))
+
+	var now_unix := int(Time.get_unix_time_from_system())
+
+	var saved_time := int(
+		data.get("last_resource_update_unix", now_unix)
+	)
+
+	last_resource_update_unix = saved_time
+
+	var saved_remainders: Dictionary = data.get(
+		"resource_remainders",
+		{}
+	)
+
+	resource_remainders = {
+		"gold": float(saved_remainders.get("gold", 0.0)),
+		"wood": float(saved_remainders.get("wood", 0.0)),
+		"ore": float(saved_remainders.get("ore", 0.0)),
+	}
+
+	update_resource_income(now_unix)
 
 	resources_changed.emit()
 	stamina_changed.emit()
@@ -223,10 +372,14 @@ func daily_income() -> Dictionary:
 			total[res] += income[res]
 	return total
 
+#func end_day() -> void:
+	## возвращение в замок: доход от зданий + новый день
+	#var income := daily_income()
+	#add_resources(income["gold"], income["wood"], income["ore"])
+	#new_day()
+
 func end_day() -> void:
-	# возвращение в замок: доход от зданий + новый день
-	var income := daily_income()
-	add_resources(income["gold"], income["wood"], income["ore"])
+	update_resource_income()
 	new_day()
 
 func summon_elite() -> void:
