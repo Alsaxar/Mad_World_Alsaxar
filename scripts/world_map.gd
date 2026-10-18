@@ -118,6 +118,7 @@ func _mark_used(poi: Poi) -> void:
 
 func _on_base_button_pressed() -> void:
 	hero.stop()
+	GameState.end_day()  # новая строка: доход от зданий и новый день
 	SceneManager.change_scene("res://scenes/base.tscn")
 
 func _update_stamina_bar() -> void:

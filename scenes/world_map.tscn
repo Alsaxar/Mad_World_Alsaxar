@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3 uid="uid://d380ca1jej6kb"]
 
-[ext_resource type="Script" uid="uid://bayaqfqnfjop0" path="res://scenes/world_map.gd" id="1_oru6e"]
+[ext_resource type="Script" uid="uid://bayaqfqnfjop0" path="res://scripts/world_map.gd" id="1_oru6e"]
 [ext_resource type="Texture2D" uid="uid://beo7olpo2ctqr" path="res://WorldMapIcon.png" id="2_qqero"]
 [ext_resource type="PackedScene" uid="uid://c7d6gi6lilrla" path="res://scenes/hero.tscn" id="3_pls23"]
 [ext_resource type="PackedScene" uid="uid://bdy2s65xlfoco" path="res://scenes/poi.tscn" id="3_qj3iy"]
 [ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="4_qj3iy"]
-[ext_resource type="Script" uid="uid://dmuloc3a6ge7u" path="res://scenes/path_preview.gd" id="4_sh0tg"]
+[ext_resource type="Script" uid="uid://dmuloc3a6ge7u" path="res://scripts/path_preview.gd" id="4_sh0tg"]
 
 [node name="world_map" type="Node2D"]
 script = ExtResource("1_oru6e")

@@ -3,16 +3,25 @@ extends Node
 signal resources_changed
 signal stamina_changed
 
+signal buildings_changed
+
 const MAX_STAMINA := 100.0
 const START_CELL := Vector2i(2, 2)  # клетка замка на карте
 
 const RECRUIT_COST := 30  # золота за одного бойца
+
+const SUMMON_COST := {"gold": 100, "ore": 10}  # цена призыва одного бойца
+const HEAL_COST := 10                          # золота за лечение одного бойца
 
 var gold := 100
 var wood := 50
 var ore := 20
 var stamina := MAX_STAMINA
 var army := 10
+
+var elite := 0       # особые войска из портала
+var wounded := 0     # раненые в лазарете
+var buildings := {}  # слот -> {"type": ..., "level": ...}
 
 var hero_cell := START_CELL
 var used_points := {}  # точки, уже использованные сегодня
@@ -43,6 +52,9 @@ func reset() -> void:
 	wood = 50
 	ore = 20
 	army = 10
+	elite = 0
+	wounded = 0
+	buildings.clear()
 	new_day()
 	resources_changed.emit()
 
@@ -51,8 +63,11 @@ func new_day() -> void:
 	used_points.clear()
 	hero_cell = START_CELL
 
+#func can_recruit(count: int) -> bool:
+	#return gold >= RECRUIT_COST * count
+
 func can_recruit(count: int) -> bool:
-	return gold >= RECRUIT_COST * count
+	return has_building("barracks") and gold >= RECRUIT_COST * count
 
 func recruit(count: int) -> void:
 	if not can_recruit(count):
@@ -68,6 +83,9 @@ func to_dict() -> Dictionary:
 		"ore": ore,
 		"stamina": stamina,
 		"army": army,
+		"elite": elite,
+		"wounded": wounded,
+		"buildings": buildings,
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"used_points": used_points,
 		"current_scene": current_scene,
@@ -85,3 +103,69 @@ func load_from_dict(data: Dictionary) -> void:
 	current_scene = str(data.get("current_scene", "res://scenes/base.tscn"))
 	resources_changed.emit()
 	stamina_changed.emit()
+	buildings_changed.emit()
+
+func has_building(slot: String) -> bool:
+	return buildings.has(slot)
+
+func building_level(slot: String) -> int:
+	return int(buildings[slot].get("level", 1))
+
+func can_afford(cost: Dictionary) -> bool:
+	return gold >= int(cost.get("gold", 0)) \
+			and wood >= int(cost.get("wood", 0)) \
+			and ore >= int(cost.get("ore", 0))
+
+func _pay(cost: Dictionary) -> void:
+	add_resources(-int(cost.get("gold", 0)), -int(cost.get("wood", 0)), -int(cost.get("ore", 0)))
+
+func build(slot: String, type: String) -> void:
+	if buildings.has(slot):
+		return
+	var cost: Dictionary = BuildingDB.BUILDINGS[type]["cost"]
+	if not can_afford(cost):
+		return
+	buildings[slot] = {"type": type, "level": 1}
+	_pay(cost)  # внутри сигнал resources_changed, здание уже записано
+	buildings_changed.emit()
+
+func daily_income() -> Dictionary:
+	var total := {"gold": 0, "wood": 0, "ore": 0}
+	for slot in buildings:
+		var building: Dictionary = buildings[slot]
+		var income := BuildingDB.income_of(building["type"], int(building.get("level", 1)))
+		for res in income:
+			total[res] += income[res]
+	return total
+
+func end_day() -> void:
+	# возвращение в замок: доход от зданий + новый день
+	var income := daily_income()
+	add_resources(income["gold"], income["wood"], income["ore"])
+	new_day()
+
+func summon_elite() -> void:
+	if not has_building("portal") or not can_afford(SUMMON_COST):
+		return
+	elite += 1
+	_pay(SUMMON_COST)  # сигнал обновит интерфейс уже с новым числом
+
+func can_heal() -> bool:
+	return has_building("infirmary") and wounded > 0 and gold >= HEAL_COST
+
+func heal_wounded() -> void:
+	var count := mini(wounded, floori(gold / float(HEAL_COST)))
+	if not has_building("infirmary") or count <= 0:
+		return
+	wounded -= count
+	army += count
+	gold -= count * HEAL_COST
+	resources_changed.emit()
+
+func register_casualties(count: int) -> int:
+	# половина погибших (с округлением вверх) попадает в лазарет, если он построен
+	if count <= 0 or not has_building("infirmary"):
+		return 0
+	var hurt := ceili(count / 2.0)
+	wounded += hurt
+	return hurt

@@ -64,6 +64,19 @@ func _update_ui() -> void:
 	enemy_bar.value = enemy_hp
 	player_bar.value = player_hp
 
+#func _finish(victory: bool) -> void:
+	#finished = true
+	#won = victory
+	#action_button.text = "Продолжить"
+	#if victory:
+		#GameState.army = _count(player_hp, PLAYER_UNIT_HP)
+		#GameState.used_points[GameState.battle_poi] = true
+		#GameState.add_resources(REWARD_GOLD)
+		#log_label.text += "\n\nПобеда! Добыча: %d золота." % REWARD_GOLD
+	#else:
+		#GameState.army = maxi(roundi(player_start / 2.0), 1)
+		#log_label.text += "\n\nПоражение. Отряд отступает в замок, половина бойцов потеряна."
+
 func _finish(victory: bool) -> void:
 	finished = true
 	won = victory
@@ -75,10 +88,15 @@ func _finish(victory: bool) -> void:
 		log_label.text += "\n\nПобеда! Добыча: %d золота." % REWARD_GOLD
 	else:
 		GameState.army = maxi(roundi(player_start / 2.0), 1)
-		log_label.text += "\n\nПоражение. Отряд отступает в замок, половина бойцов потеряна."
+		log_label.text += "\n\nПоражение. Отряд отступает в замок."
+
+	var hurt := GameState.register_casualties(player_start - GameState.army)
+	if hurt > 0:
+		log_label.text += "\nРаненых отправлено в лазарет: %d." % hurt
 
 func _leave() -> void:
 	if won:
 		SceneManager.change_scene("res://scenes/world_map.tscn")
 	else:
+		GameState.end_day()  # новая строка: отступление тоже возвращает домой
 		SceneManager.change_scene("res://scenes/base.tscn")

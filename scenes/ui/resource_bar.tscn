@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c1l8sv6v2a80n"]
 
-[ext_resource type="Script" uid="uid://708lmqn24o21" path="res://scenes/ui/resource_bar.gd" id="1_th427"]
+[ext_resource type="Script" uid="uid://708lmqn24o21" path="res://scripts/resource_bar.gd" id="1_th427"]
 
 [node name="ResourceBar" type="PanelContainer"]
 offset_right = 40.0

@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3 uid="uid://cnek4a2hfb5b"]
+
+[ext_resource type="Script" uid="uid://chfbfi3p67i0b" path="res://scripts/building_slot.gd" id="1_jfu48"]
+
+[node name="BuildingSlot" type="PanelContainer"]
+offset_right = 1.0
+offset_bottom = 96.0
+size_flags_horizontal = 3
+script = ExtResource("1_jfu48")
+
+[node name="Box" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+autowrap_mode = 3
+
+[node name="InfoLabel" type="Label" parent="Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 3
+
+[node name="Actions" type="VBoxContainer" parent="Box"]
+layout_mode = 2
+theme_override_constants/separation = 8

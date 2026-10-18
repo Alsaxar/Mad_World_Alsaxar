@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://bmldx5227le6j"]
 
-[ext_resource type="Script" uid="uid://cnapl871pckbf" path="res://base.gd" id="1_h5ip5"]
+[ext_resource type="Script" uid="uid://cnapl871pckbf" path="res://scripts/base.gd" id="1_h5ip5"]
 [ext_resource type="Texture2D" uid="uid://clc4kymhj5lk7" path="res://WorldMapTexture.jpg" id="2_40w10"]
 [ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="4_hh5oj"]
 
@@ -47,24 +47,41 @@ theme_override_constants/separation = 20
 [node name="ResourceBar" parent="Layout" instance=ExtResource("4_hh5oj")]
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="Layout"]
+[node name="Scroll" type="ScrollContainer" parent="Layout"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+scroll_deadzone = 15
 
-[node name="RecruitRow" type="HBoxContainer" parent="Layout"]
+[node name="Content" type="VBoxContainer" parent="Layout/Scroll"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 20
-alignment = 1
 
-[node name="Recruit1Button" type="Button" parent="Layout/RecruitRow"]
-custom_minimum_size = Vector2(240, 100)
+[node name="SpecialTitle" type="Label" parent="Layout/Scroll/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 36
+text = "Замок"
 
-[node name="Recruit5Button" type="Button" parent="Layout/RecruitRow"]
-custom_minimum_size = Vector2(240, 100)
+[node name="SpecialBuildings" type="VBoxContainer" parent="Layout/Scroll/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_constants/separation = 16
+
+[node name="ResourceTitle" type="Label" parent="Layout/Scroll/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Ресурсные здания"
+
+[node name="IncomeLabel" type="Label" parent="Layout/Scroll/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
+[node name="ResourceGrid" type="GridContainer" parent="Layout/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 2
 
 [node name="MapButton" type="Button" parent="Layout"]
 custom_minimum_size = Vector2(400, 120)
