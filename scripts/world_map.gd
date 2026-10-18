@@ -29,8 +29,8 @@ func _ready() -> void:
 	_build_grid()
 	hero.position = _cell_to_world(GameState.hero_cell)
 	camera.reset_smoothing()  # чтобы камера не «доезжала» от старой позиции
-	#for poi: Poi in points.get_children():
-		#poi.set_used(GameState.used_points.has(String(poi.name)))
+	
+	
 	for poi: Poi in points.get_children():
 		if poi.instance_id == &"":
 			push_error("У точки карты нет instance_id: " + str(poi.name))

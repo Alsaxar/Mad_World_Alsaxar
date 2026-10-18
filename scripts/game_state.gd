@@ -91,19 +91,99 @@ func to_dict() -> Dictionary:
 		"current_scene": current_scene,
 	}
 
+#func load_from_dict(data: Dictionary) -> void:
+	#gold = int(data.get("gold", 100))
+	#wood = int(data.get("wood", 50))
+	#ore = int(data.get("ore", 20))
+	#stamina = float(data.get("stamina", MAX_STAMINA))
+	#army = int(data.get("army", 10))
+	#var cell: Array = data.get("hero_cell", [START_CELL.x, START_CELL.y])
+	#hero_cell = Vector2i(int(cell[0]), int(cell[1]))
+	#used_points = data.get("used_points", {})
+	#current_scene = str(data.get("current_scene", "res://scenes/base.tscn"))
+	#resources_changed.emit()
+	#stamina_changed.emit()
+	#buildings_changed.emit()
+
 func load_from_dict(data: Dictionary) -> void:
 	gold = int(data.get("gold", 100))
 	wood = int(data.get("wood", 50))
 	ore = int(data.get("ore", 20))
-	stamina = float(data.get("stamina", MAX_STAMINA))
+	stamina = clampf(
+		float(data.get("stamina", MAX_STAMINA)),
+		0.0,
+		MAX_STAMINA
+	)
 	army = int(data.get("army", 10))
-	var cell: Array = data.get("hero_cell", [START_CELL.x, START_CELL.y])
-	hero_cell = Vector2i(int(cell[0]), int(cell[1]))
-	used_points = data.get("used_points", {})
-	current_scene = str(data.get("current_scene", "res://scenes/base.tscn"))
+	elite = int(data.get("elite", 0))
+	wounded = int(data.get("wounded", 0))
+
+	var cell: Array = data.get(
+		"hero_cell",
+		[START_CELL.x, START_CELL.y]
+	)
+	if cell.size() >= 2:
+		hero_cell = Vector2i(int(cell[0]), int(cell[1]))
+	else:
+		hero_cell = START_CELL
+
+	var saved_buildings: Dictionary = data.get("buildings", {})
+	buildings = _migrate_legacy_ids(saved_buildings, true)
+
+	var saved_points: Dictionary = data.get("used_points", {})
+	used_points = _migrate_legacy_ids(saved_points, false)
+
+	current_scene = str(
+		data.get("current_scene", "res://scenes/base.tscn")
+	)
+	battle_poi = str(data.get("battle_poi", ""))
+
 	resources_changed.emit()
 	stamina_changed.emit()
 	buildings_changed.emit()
+
+
+func _migrate_legacy_ids(
+	source: Dictionary,
+	is_buildings: bool
+) -> Dictionary:
+	var migrated: Dictionary = {}
+
+	# Сначала переносим старые ключи в новый формат.
+	for key in source:
+		var old_id := str(key)
+		var new_id := old_id
+
+		if is_buildings and old_id.begins_with("res_"):
+			var index_text := old_id.trim_prefix("res_")
+			if index_text.is_valid_int():
+				var index := int(index_text)
+				if index >= 0 and index < GameIds.RESOURCE_SLOT_COUNT:
+					new_id = str(GameIds.resource_slot_id(index))
+
+		elif not is_buildings:
+			match old_id:
+				"Mine":
+					new_id = "poi_gold_mine_001"
+				"BanditCamp":
+					new_id = "poi_bandit_camp_001"
+				"LightAltar":
+					new_id = "poi_altar_001"
+
+		migrated[new_id] = source[key]
+
+	# Если в сохранении уже есть новый ключ, он имеет приоритет.
+	for key in source:
+		var old_id := str(key)
+		if is_buildings and old_id.begins_with("res_"):
+			continue
+		if not is_buildings and old_id in [
+			"Mine", "BanditCamp", "LightAltar"
+		]:
+			continue
+		migrated[old_id] = source[key]
+
+	return migrated
 
 func has_building(slot: String) -> bool:
 	return buildings.has(slot)
