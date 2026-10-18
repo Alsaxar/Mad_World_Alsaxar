@@ -29,9 +29,15 @@ func _ready() -> void:
 	_build_grid()
 	hero.position = _cell_to_world(GameState.hero_cell)
 	camera.reset_smoothing()  # чтобы камера не «доезжала» от старой позиции
+	#for poi: Poi in points.get_children():
+		#poi.set_used(GameState.used_points.has(String(poi.name)))
 	for poi: Poi in points.get_children():
-		poi.set_used(GameState.used_points.has(String(poi.name)))
-
+		if poi.instance_id == &"":
+			push_error("У точки карты нет instance_id: " + str(poi.name))
+			continue
+			
+			poi.set_used(GameState.used_points.has(String(poi.instance_id)))
+	
 	hero.step_finished.connect(_on_hero_step_finished)
 	hero.path_finished.connect(_on_hero_path_finished)
 	base_button.pressed.connect(_on_base_button_pressed)
@@ -91,7 +97,8 @@ func _on_hero_path_finished() -> void:
 	SaveManager.save_game()
 
 func _interact(poi: Poi) -> void:
-	var id := String(poi.name)
+	#var id := String(poi.name)
+	var id := String(poi.instance_id)
 	if GameState.used_points.has(id):
 		_show_message("%s: сегодня здесь уже нечего делать" % poi.poi_name)
 		return
@@ -113,7 +120,8 @@ func _interact(poi: Poi) -> void:
 			SceneManager.change_scene("res://scenes/battle.tscn")
 
 func _mark_used(poi: Poi) -> void:
-	GameState.used_points[String(poi.name)] = true
+	#GameState.used_points[String(poi.name)] = true
+	GameState.used_points[String(poi.instance_id)] = true
 	poi.set_used(true)
 
 func _on_base_button_pressed() -> void:

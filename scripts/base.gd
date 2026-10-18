@@ -13,11 +13,32 @@ func _ready() -> void:
 	_create_slots()
 	_update_income()
 
+#func _create_slots() -> void:
+	#for id: String in BuildingDB.SPECIAL_SLOTS:
+		#_add_slot(special_box, id, BuildingDB.BUILDINGS[id]["name"], [id])
+	#for i in BuildingDB.RESOURCE_SLOT_COUNT:
+		#_add_slot(resource_grid, "res_%d" % i, "Слот %d" % (i + 1), BuildingDB.RESOURCE_TYPES)
+
+
 func _create_slots() -> void:
 	for id: String in BuildingDB.SPECIAL_SLOTS:
-		_add_slot(special_box, id, BuildingDB.BUILDINGS[id]["name"], [id])
-	for i in BuildingDB.RESOURCE_SLOT_COUNT:
-		_add_slot(resource_grid, "res_%d" % i, "Слот %d" % (i + 1), BuildingDB.RESOURCE_TYPES)
+		_add_slot(
+			special_box,
+			id,
+			BuildingDB.BUILDINGS[id]["name"],
+			[id]
+		)
+
+	for i in range(GameIds.RESOURCE_SLOT_COUNT):
+		var slot_id := String(GameIds.resource_slot_id(i))
+		var title := "Слот %d" % (i + 1)
+		_add_slot(
+			resource_grid,
+			slot_id,
+			title,
+			BuildingDB.RESOURCE_TYPES
+		)
+
 
 func _add_slot(parent: Container, id: String, title: String, types: Array) -> void:
 	var slot: BuildingSlot = SLOT_SCENE.instantiate()

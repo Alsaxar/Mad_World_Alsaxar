@@ -56,17 +56,20 @@ color = Color(1, 0, 0, 1)
 
 [node name="Mine" parent="Points" instance=ExtResource("3_qj3iy")]
 position = Vector2(672, 224)
+instance_id = &"poi_gold_mine_001"
 poi_name = "Шахта"
 color = Color(0.35933852, 0.39873096, 0.4717912, 1)
 
 [node name="BanditCamp" parent="Points" instance=ExtResource("3_qj3iy")]
 position = Vector2(736, 736)
+instance_id = &"poi_bandit_camp_001"
 poi_name = "Лагерь разбойников"
 color = Color(1, 0.40784314, 0, 1)
 kind = "camp"
 
 [node name="LightAltar" parent="Points" instance=ExtResource("3_qj3iy")]
 position = Vector2(224, 1056)
+instance_id = &"poi_altar_001"
 poi_name = "Алтарь света"
 color = Color(0.9999998, 0.9176843, 0.6001641, 1)
 kind = "altar"
