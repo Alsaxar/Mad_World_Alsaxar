@@ -1,5 +1,10 @@
 extends PanelContainer
 
+#var gold_icon := ColorRect #yellow=gold
+#var wood_icon := ColorRect #brown=wood
+#var ore_icon := ColorRect #grey=ore
+#var army_icon := ColorRect #black=army
+
 @onready var gold_label: Label = $Row/GoldLabel
 @onready var wood_label: Label = $Row/WoodLabel
 @onready var ore_label: Label = $Row/OreLabel
@@ -8,19 +13,22 @@ extends PanelContainer
 
 func _ready() -> void:
 	GameState.resources_changed.connect(_update)
+	#gold_icon.color = Color(1.0, 0.82, 0.0)
+	#wood_icon.color = Color(0.5,0.3,0.1)
+	#ore_icon.color = Color(0.6,0.6,0.7)
 	_update()
 
 func _update() -> void:
-	gold_label.text = "Золото: %d / %d" % [
+	gold_label.text = "%d / %d" % [
 		GameState.gold,
 		GameState.resource_capacity("gold")
 	]
-	wood_label.text = "Дерево: %d / %d" % [
+	wood_label.text = "%d / %d" % [
 		GameState.wood,
 		GameState.resource_capacity("wood")
 	]
-	ore_label.text = "Руда: %d / %d" % [
+	ore_label.text = "%d / %d" % [
 		GameState.ore,
 		GameState.resource_capacity("ore")
 	]
-	army_label.text = "Отряд: %d" % GameState.army
+	army_label.text = "%d" % GameState.army

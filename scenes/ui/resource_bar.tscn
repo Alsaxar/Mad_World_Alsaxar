@@ -12,20 +12,40 @@ layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
+[node name="ColorRect" type="ColorRect" parent="Row"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(1, 1, 0.05490196, 1)
+
 [node name="GoldLabel" type="Label" parent="Row"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Gold"
+
+[node name="ColorRect2" type="ColorRect" parent="Row"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0.4187819, 0.18103233, 1.4439226e-07, 1)
 
 [node name="WoodLabel" type="Label" parent="Row"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Wood"
 
+[node name="ColorRect3" type="ColorRect" parent="Row"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0.44291076, 0.44291076, 0.44291073, 1)
+
 [node name="OreLabel" type="Label" parent="Row"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Ore"
+
+[node name="ColorRect4" type="ColorRect" parent="Row"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+color = Color(0, 0, 0, 1)
 
 [node name="ArmyLabel" type="Label" parent="Row"]
 layout_mode = 2
