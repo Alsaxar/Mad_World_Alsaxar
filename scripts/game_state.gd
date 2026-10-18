@@ -6,6 +6,7 @@ signal stamina_changed
 signal buildings_changed
 
 const MAX_STAMINA := 100.0
+const BASE_RESOURCE_CAPACITY := 500
 const START_CELL := Vector2i(2, 2)  # клетка замка на карте
 
 const RECRUIT_COST := 30  # золота за одного бойца
@@ -29,10 +30,14 @@ var battle_poi := ""   # какая точка запустила бой
 
 var current_scene := "res://scenes/base.tscn"  # где игрок остановился
 
+func resource_capacity(resource: String) -> int:
+	return BASE_RESOURCE_CAPACITY
+
+
 func add_resources(g := 0, w := 0, o := 0) -> void:
-	gold += g
-	wood += w
-	ore += o
+	gold = clampi(gold + g, 0, resource_capacity("gold"))
+	wood = clampi(wood + w, 0, resource_capacity("wood"))
+	ore = clampi(ore + o, 0, resource_capacity("ore"))
 	resources_changed.emit()
 
 func spend_stamina(amount: float) -> void:
@@ -106,9 +111,9 @@ func to_dict() -> Dictionary:
 	#buildings_changed.emit()
 
 func load_from_dict(data: Dictionary) -> void:
-	gold = int(data.get("gold", 100))
-	wood = int(data.get("wood", 50))
-	ore = int(data.get("ore", 20))
+	gold = clampi(int(data.get("gold", 100)), 0, resource_capacity("gold"))
+	wood = clampi(int(data.get("wood", 50)), 0, resource_capacity("wood"))
+	ore = clampi(int(data.get("ore", 20)), 0, resource_capacity("ore"))
 	stamina = clampf(
 		float(data.get("stamina", MAX_STAMINA)),
 		0.0,
