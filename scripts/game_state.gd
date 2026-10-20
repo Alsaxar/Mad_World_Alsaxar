@@ -21,6 +21,13 @@ const ORE_PER_HOUR := 1500.0
 const SECONDS_PER_HOUR := 3600.0
 const RESOURCE_UPDATE_INTERVAL := 1.0
 
+const WAREHOUSE_UPGRADE_BASE_COST := {
+	"gold": 100,
+	"wood": 100,
+	"ore": 25
+}
+
+
 var gold := 100
 var wood := 50
 var ore := 20
@@ -146,7 +153,16 @@ func update_resource_income(now_unix: int = -1) -> void:
 		add_resources(gold_add, wood_add, ore_add)
 
 func resource_capacity(resource: String) -> int:
-	return BASE_RESOURCE_CAPACITY
+	var capacity := BASE_RESOURCE_CAPACITY
+
+	if has_building("warehouse"):
+		var level := building_level("warehouse")
+		capacity = (
+			int(BuildingDB.BUILDINGS["warehouse"]["capacity_per_level"])
+			* level
+		)
+
+	return capacity
 
 
 func add_resources(g := 0, w := 0, o := 0) -> void:
@@ -361,6 +377,44 @@ func build(slot: String, type: String) -> void:
 		return
 	buildings[slot] = {"type": type, "level": 1}
 	_pay(cost)  # внутри сигнал resources_changed, здание уже записано
+	buildings_changed.emit()
+
+
+
+func warehouse_upgrade_cost() -> Dictionary:
+	if not has_building("warehouse"):
+		return {}
+
+	var level := building_level("warehouse")
+
+	return {
+		"gold": WAREHOUSE_UPGRADE_BASE_COST["gold"] * level,
+		"wood": WAREHOUSE_UPGRADE_BASE_COST["wood"] * level,
+		"ore": WAREHOUSE_UPGRADE_BASE_COST["ore"] * level
+	}
+
+
+func can_upgrade_warehouse() -> bool:
+	if not has_building("warehouse"):
+		return false
+
+	return can_afford(warehouse_upgrade_cost())
+
+
+func upgrade_warehouse() -> void:
+	if not can_upgrade_warehouse():
+		return
+
+	var cost := warehouse_upgrade_cost()
+	var building: Dictionary = buildings["warehouse"]
+
+	building["level"] = int(building.get("level", 1)) + 1
+	buildings["warehouse"] = building
+
+	_pay(cost)
+
+	# После повышения лимита уведомляем интерфейс ресурсов.
+	resources_changed.emit()
 	buildings_changed.emit()
 
 func daily_income() -> Dictionary:

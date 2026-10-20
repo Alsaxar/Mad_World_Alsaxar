@@ -11,9 +11,10 @@ const BUILDINGS := {
 	"gold_mine": {"name": "Золотой рудник", "cost": {"wood": 50}, "income": {"gold": 20}},
 	"sawmill": {"name": "Лесопилка", "cost": {"gold": 40}, "income": {"wood": 15}},
 	"ore_mine": {"name": "Шахта руды", "cost": {"gold": 40, "wood": 20}, "income": {"ore": 10}},
+	"warehouse":{"name":"Склад", "cost": {"gold": 80, "wood": 60}, "capacity_per_level": 500},
 }
 
-const SPECIAL_SLOTS := ["town_hall","barracks", "portal", "infirmary"]
+const SPECIAL_SLOTS := ["town_hall","barracks", "portal", "infirmary", "warehouse"]
 const RESOURCE_TYPES := ["gold_mine", "sawmill", "ore_mine"]
 const RESOURCE_SLOT_COUNT := 12
 
