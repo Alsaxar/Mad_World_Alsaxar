@@ -5,6 +5,9 @@ signal stamina_changed
 
 signal buildings_changed
 
+signal second_tick
+signal building_completed(slot: String)
+
 const MAX_STAMINA := 100.0
 const BASE_RESOURCE_CAPACITY := 500
 const START_CELL := Vector2i(2, 2)  # клетка замка на карте
@@ -71,6 +74,10 @@ func _process(delta: float) -> void:
 
 	resource_update_timer = 0.0
 	update_resource_income()
+	resource_update_timer = 0.0
+	update_resource_income()
+	process_timers()
+	second_tick.emit()
 
 
 func hourly_income() -> Dictionary:
@@ -255,6 +262,9 @@ func to_dict() -> Dictionary:
 	#buildings_changed.emit()
 
 func load_from_dict(data: Dictionary) -> void:
+	var saved_buildings: Dictionary = data.get("buildings", {})
+	buildings = _migrate_legacy_ids(saved_buildings, true)
+	
 	gold = clampi(int(data.get("gold", 100)), 0, resource_capacity("gold"))
 	wood = clampi(int(data.get("wood", 50)), 0, resource_capacity("wood"))
 	ore = clampi(int(data.get("ore", 20)), 0, resource_capacity("ore"))
@@ -276,8 +286,8 @@ func load_from_dict(data: Dictionary) -> void:
 	else:
 		hero_cell = START_CELL
 
-	var saved_buildings: Dictionary = data.get("buildings", {})
-	buildings = _migrate_legacy_ids(saved_buildings, true)
+	
+	
 
 	var saved_points: Dictionary = data.get("used_points", {})
 	used_points = _migrate_legacy_ids(saved_points, false)
@@ -307,6 +317,7 @@ func load_from_dict(data: Dictionary) -> void:
 	}
 
 	update_resource_income(now_unix)
+	process_timers(now_unix)  # достраиваем то, что завершилось, пока игра была закрыта
 
 	resources_changed.emit()
 	stamina_changed.emit()
@@ -356,10 +367,11 @@ func _migrate_legacy_ids(
 	return migrated
 
 func has_building(slot: String) -> bool:
-	return buildings.has(slot)
+	# true только для достроенного здания (уровень 1 и выше)
+	return buildings.has(slot) and int(buildings[slot].get("level", 1)) >= 1
 
-func building_level(slot: String) -> int:
-	return int(buildings[slot].get("level", 1))
+#func building_level(slot: String) -> int:
+	#return int(buildings[slot].get("level", 1))
 
 func can_afford(cost: Dictionary) -> bool:
 	return gold >= int(cost.get("gold", 0)) \
@@ -375,47 +387,52 @@ func build(slot: String, type: String) -> void:
 	var cost: Dictionary = BuildingDB.BUILDINGS[type]["cost"]
 	if not can_afford(cost):
 		return
-	buildings[slot] = {"type": type, "level": 1}
+	buildings[slot] = {
+		"type": type,
+		"level": 0,  # 0 = ещё строится
+		"target_level": 1,
+		"finish_at": unix_now() + BuildingDB.build_time(type, 1),
+	}
 	_pay(cost)  # внутри сигнал resources_changed, здание уже записано
 	buildings_changed.emit()
 
+# Оставил в качестве примера для самого себя
+
+#func warehouse_upgrade_cost() -> Dictionary:
+	#if not has_building("warehouse"):
+		#return {}
+#
+	#var level := building_level("warehouse")
+#
+	#return {
+		#"gold": WAREHOUSE_UPGRADE_BASE_COST["gold"] * level,
+		#"wood": WAREHOUSE_UPGRADE_BASE_COST["wood"] * level,
+		#"ore": WAREHOUSE_UPGRADE_BASE_COST["ore"] * level
+	#}
 
 
-func warehouse_upgrade_cost() -> Dictionary:
-	if not has_building("warehouse"):
-		return {}
-
-	var level := building_level("warehouse")
-
-	return {
-		"gold": WAREHOUSE_UPGRADE_BASE_COST["gold"] * level,
-		"wood": WAREHOUSE_UPGRADE_BASE_COST["wood"] * level,
-		"ore": WAREHOUSE_UPGRADE_BASE_COST["ore"] * level
-	}
+#func can_upgrade_warehouse() -> bool:
+	#if not has_building("warehouse"):
+		#return false
+#
+	#return can_afford(warehouse_upgrade_cost())
 
 
-func can_upgrade_warehouse() -> bool:
-	if not has_building("warehouse"):
-		return false
-
-	return can_afford(warehouse_upgrade_cost())
-
-
-func upgrade_warehouse() -> void:
-	if not can_upgrade_warehouse():
-		return
-
-	var cost := warehouse_upgrade_cost()
-	var building: Dictionary = buildings["warehouse"]
-
-	building["level"] = int(building.get("level", 1)) + 1
-	buildings["warehouse"] = building
-
-	_pay(cost)
-
-	# После повышения лимита уведомляем интерфейс ресурсов.
-	resources_changed.emit()
-	buildings_changed.emit()
+#func upgrade_warehouse() -> void:
+	#if not can_upgrade_warehouse():
+		#return
+#
+	#var cost := warehouse_upgrade_cost()
+	#var building: Dictionary = buildings["warehouse"]
+#
+	#building["level"] = int(building.get("level", 1)) + 1
+	#buildings["warehouse"] = building
+#
+	#_pay(cost)
+#
+	## После повышения лимита уведомляем интерфейс ресурсов.
+	#resources_changed.emit()
+	#buildings_changed.emit()
 
 func daily_income() -> Dictionary:
 	var total := {"gold": 0, "wood": 0, "ore": 0}
@@ -461,3 +478,82 @@ func register_casualties(count: int) -> int:
 	var hurt := ceili(count / 2.0)
 	wounded += hurt
 	return hurt
+
+func unix_now() -> int:
+	return int(Time.get_unix_time_from_system())
+
+func is_under_construction(slot: String) -> bool:
+	return buildings.has(slot) and int(buildings[slot].get("finish_at", 0)) > 0
+
+func time_left(slot: String) -> int:
+	if not is_under_construction(slot):
+		return 0
+	return maxi(int(buildings[slot]["finish_at"]) - unix_now(), 0)
+
+func process_timers(now: int = -1) -> void:
+	if now < 0:
+		now = unix_now()
+	var finished: Array = []
+	for slot in buildings:
+		var building: Dictionary = buildings[slot]
+		var finish_at := int(building.get("finish_at", 0))
+		if finish_at > 0 and now >= finish_at:
+			building["level"] = int(building.get("target_level", 1))
+			building["finish_at"] = 0
+			finished.append(slot)
+	for slot in finished:
+		building_completed.emit(slot)
+	if not finished.is_empty():
+		buildings_changed.emit()
+
+# ─── Улучшение зданий ───────────────────────────────────────────
+# Базовая стоимость берётся из BuildingDB.BUILDINGS[id]["cost"] (или "upgrade_cost")
+# Цена уровня N (N >= 2): базовая_цена * 2^(N-2)
+# Уровень 1 = только что построено.
+
+func building_level(id: String) -> int:
+	if not buildings.has(id):
+		return 0
+	var b: Dictionary = buildings[id]
+	return int(b.get("level", 1))
+
+func upgrade_cost(slot: String) -> Dictionary:
+	if not has_building(slot):
+			return {}
+	var type: String = buildings[slot]["type"]
+	var base: Dictionary = BuildingDB.BUILDINGS[type].get("cost", {})
+	var level := building_level(slot)
+	var multiplier := pow(2.0, level - 1)
+	var result := {}
+	for key in base.keys():
+		result[key] = int(round(base[key] * multiplier))
+	return result
+
+
+func can_upgrade(slot: String) -> bool:
+	if not has_building(slot):
+		return false
+	return can_afford(upgrade_cost(slot))
+
+func upgrade_building(slot: String) -> void:
+	if not can_upgrade(slot):
+		return
+	var cost := upgrade_cost(slot)
+	var building: Dictionary = buildings[slot]
+	building["level"] = int(building.get("level", 1)) + 1
+	buildings[slot] = building
+	_pay(cost)
+	resources_changed.emit()
+	buildings_changed.emit()
+
+# Вспомогательные (если их ещё нет):
+func _can_afford(cost: Dictionary) -> bool:
+	return gold >= int(cost.get("gold", 0)) \
+		and wood >= int(cost.get("wood", 0)) \
+		and ore >= int(cost.get("ore", 0))
+
+func _spend(cost: Dictionary) -> void:
+	gold -= int(cost.get("gold", 0))
+	wood -= int(cost.get("wood", 0))
+	ore -= int(cost.get("ore", 0))
+	resources_changed.emit()

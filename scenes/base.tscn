@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://bmldx5227le6j"]
 
 [ext_resource type="Script" uid="uid://cnapl871pckbf" path="res://scripts/base.gd" id="1_h5ip5"]
-[ext_resource type="Texture2D" uid="uid://clc4kymhj5lk7" path="res://WorldMapTexture.jpg" id="2_40w10"]
+[ext_resource type="Texture2D" uid="uid://3x2xhvp0uxus" path="res://Base_Background.png" id="2_t45w4"]
 [ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="4_hh5oj"]
 
 [sub_resource type="Gradient" id="Gradient_t45w4"]
@@ -25,7 +25,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_40w10")
+texture = ExtResource("2_t45w4")
 expand_mode = 1
 stretch_mode = 6
 

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://d05o1e8maxvxy"]
+[gd_scene load_steps=3 format=3 uid="uid://d05o1e8maxvxy"]
 
 [ext_resource type="Script" uid="uid://kkrdhthfh51h" path="res://scripts/main_menu.gd" id="1_l6cm7"]
+[ext_resource type="Texture2D" uid="uid://clc4kymhj5lk7" path="res://WorldMapTexture.jpg" id="2_ekxnf"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -11,14 +12,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_l6cm7")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.039215688, 0.16078432, 1, 1)
+texture = ExtResource("2_ekxnf")
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1

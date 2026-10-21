@@ -36,7 +36,7 @@ func _ready() -> void:
 			push_error("У точки карты нет instance_id: " + str(poi.name))
 			continue
 			
-			poi.set_used(GameState.used_points.has(String(poi.instance_id)))
+		poi.set_used(GameState.used_points.has(String(poi.instance_id)))
 	
 	hero.step_finished.connect(_on_hero_step_finished)
 	hero.path_finished.connect(_on_hero_path_finished)

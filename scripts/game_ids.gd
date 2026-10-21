@@ -28,7 +28,7 @@ const POI_MINE_001: StringName = &"poi_gold_mine_001"
 const POI_BANDIT_CAMP_001: StringName = &"poi_bandit_camp_001"
 const POI_ALTAR_001: StringName = &"poi_altar_001"
 
-const RESOURCE_SLOT_COUNT: int = 12
+const RESOURCE_SLOT_COUNT: int = 12 #Здесь задается количество ресурсных точек.
 
 static func resource_slot_id(index: int) -> StringName:
 	return StringName("resource_slot_%03d" % (index + 1))
