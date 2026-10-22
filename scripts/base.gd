@@ -3,9 +3,11 @@ extends Control
 const SLOT_SCENE := preload("res://scenes/ui/building_slot.tscn")
 
 @onready var map_button: Button = $Layout/MapButton
-@onready var special_box: VBoxContainer = $Layout/Scroll/BaseWorld/Content/SpecialBuildings
-@onready var resource_grid: GridContainer = $Layout/Scroll/BaseWorld/Content/ResourceGrid
+#@onready var special_box: VBoxContainer = $Layout/Scroll/BaseWorld/Content/SpecialBuildings
+#@onready var resource_grid: GridContainer = $Layout/Scroll/BaseWorld/Content/ResourceGrid
 @onready var income_label: Label = $Layout/Scroll/BaseWorld/Content/IncomeLabel
+@onready var building_layer: Control = $Layout/Scroll/BaseWorld/BuildingLayer
+@onready var building_positions: Control = $Layout/Scroll/BaseWorld/BuildingPositions
 
 # Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
@@ -23,7 +25,6 @@ func _ready() -> void:
 func _create_slots() -> void:
 	for id: String in BuildingDB.SPECIAL_SLOTS:
 		_add_slot(
-			special_box,
 			id,
 			BuildingDB.BUILDINGS[id]["name"],
 			[id]
@@ -33,7 +34,6 @@ func _create_slots() -> void:
 		var slot_id := String(GameIds.resource_slot_id(i))
 		var title := "Слот %d" % (i + 1)
 		_add_slot(
-			resource_grid,
 			slot_id,
 			title,
 			BuildingDB.RESOURCE_TYPES
@@ -41,10 +41,25 @@ func _create_slots() -> void:
 
 
 # Создаёт сцену слота и передаёт ей идентификатор, заголовок и допустимые типы. Новый элемент добавляется в контейнер интерфейса.
-func _add_slot(parent: Container, id: String, title: String, types: Array) -> void:
+func _add_slot(id: String, title: String, types: Array) -> void:
+	var marker := building_positions.get_node_or_null(id) as Control
+	
+	
+
+	if marker == null:
+		push_error("Не найден маркер здания '%s' в BuildingPositions." % id)
+		return
+	
 	var slot: BuildingSlot = SLOT_SCENE.instantiate()
 	slot.setup(id, title, types)
-	parent.add_child(slot)  # _ready слота вызывается именно здесь
+	#parent.add_child(slot)  # _ready слота вызывается именно здесь
+	# Слой не является Container, поэтому слот можно позиционировать вручную.
+	building_layer.add_child(slot)
+	slot.position = marker.position
+
+	# Задаём видимый размер слота независимо от контейнеров.
+	slot.custom_minimum_size = Vector2(320, 220)
+	slot.size = Vector2(320, 220)
 
 # Получает доход из GameState и форматирует его через BuildingDB. Результат выводится в подпись дохода.
 func _update_income() -> void:

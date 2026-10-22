@@ -89,14 +89,14 @@ offset_right = 2400.0
 offset_bottom = 1600.0
 mouse_filter = 1
 
-[node name="BuidingPositions" type="Control" parent="Layout/Scroll/BaseWorld"]
+[node name="BuildingPositions" type="Control" parent="Layout/Scroll/BaseWorld"]
 layout_mode = 1
 anchors_preset = 0
 offset_right = 2400.0
 offset_bottom = 1600.0
 mouse_filter = 2
 
-[node name="town_hall" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="town_hall" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1000.0
@@ -104,7 +104,7 @@ offset_top = 650.0
 offset_right = 1000.0
 offset_bottom = 650.0
 
-[node name="barracks" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="barracks" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 700.0
@@ -112,7 +112,7 @@ offset_top = 450.0
 offset_right = 700.0
 offset_bottom = 450.0
 
-[node name="portal" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="portal" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1350.0
@@ -120,7 +120,7 @@ offset_top = 450.0
 offset_right = 1350.0
 offset_bottom = 450.0
 
-[node name="infirmary" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="infirmary" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 700.0
@@ -128,7 +128,7 @@ offset_top = 850.0
 offset_right = 700.0
 offset_bottom = 850.0
 
-[node name="warehouse" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="warehouse" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1350.0
@@ -136,13 +136,13 @@ offset_top = 850.0
 offset_right = 1350.0
 offset_bottom = 850.0
 
-[node name="resource_slot_001" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_001" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
 offset_right = 1600.0
 
-[node name="resource_slot_002" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_002" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
@@ -150,7 +150,7 @@ offset_top = 200.0
 offset_right = 1600.0
 offset_bottom = 200.0
 
-[node name="resource_slot_003" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_003" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
@@ -158,7 +158,7 @@ offset_top = 400.0
 offset_right = 1600.0
 offset_bottom = 400.0
 
-[node name="resource_slot_004" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_004" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
@@ -166,7 +166,7 @@ offset_top = 600.0
 offset_right = 1600.0
 offset_bottom = 600.0
 
-[node name="resource_slot_005" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_005" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
@@ -174,7 +174,7 @@ offset_top = 800.0
 offset_right = 1600.0
 offset_bottom = 800.0
 
-[node name="resource_slot_006" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_006" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 1600.0
@@ -182,7 +182,7 @@ offset_top = 1000.0
 offset_right = 1600.0
 offset_bottom = 1000.0
 
-[node name="resource_slot_007" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_007" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
@@ -190,7 +190,7 @@ offset_top = 200.0
 offset_right = 2000.0
 offset_bottom = 200.0
 
-[node name="resource_slot_008" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_008" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
@@ -198,7 +198,7 @@ offset_top = 400.0
 offset_right = 2000.0
 offset_bottom = 400.0
 
-[node name="resource_slot_009" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_009" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
@@ -206,7 +206,7 @@ offset_top = 600.0
 offset_right = 2000.0
 offset_bottom = 600.0
 
-[node name="resource_slot_010" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_010" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
@@ -214,7 +214,7 @@ offset_top = 800.0
 offset_right = 2000.0
 offset_bottom = 800.0
 
-[node name="resource_slot_011" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_011" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
@@ -222,7 +222,7 @@ offset_top = 1000.0
 offset_right = 2000.0
 offset_bottom = 1000.0
 
-[node name="resource_slot_012" type="Control" parent="Layout/Scroll/BaseWorld/BuidingPositions"]
+[node name="resource_slot_012" type="Control" parent="Layout/Scroll/BaseWorld/BuildingPositions"]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 2000.0
