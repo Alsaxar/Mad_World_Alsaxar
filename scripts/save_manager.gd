@@ -7,9 +7,11 @@ const BASE_SCENE := "res://scenes/base.tscn"
 const MAP_SCENE := "res://scenes/world_map.tscn"
 const BATTLE_SCENE := "res://scenes/battle.tscn"
 
+# Проверяет наличие файла сохранения. Ответ используется меню для доступности продолжения игры.
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
+# Получает состояние GameState и путь текущей сцены, затем записывает их в файл. Файл используется при следующей загрузке.
 func save_game(scene_path := "") -> void:
 	if scene_path.is_empty():
 		var current := get_tree().current_scene
@@ -32,6 +34,7 @@ func save_game(scene_path := "") -> void:
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
 
+# Читает файл сохранения и восстанавливает GameState и путь сцены. Возвращает результат загрузки меню и системе переходов.
 func load_game() -> bool:
 	if not has_save():
 		return false
@@ -49,6 +52,7 @@ func load_game() -> bool:
 		GameState.current_scene = BASE_SCENE
 	return true
 
+# Обрабатывает системное уведомление Godot и при необходимости сохраняет игру.
 func _notification(what: int) -> void:
 	# закрытие окна, кнопка «Назад» на Android, сворачивание приложения на телефоне
 	if what == NOTIFICATION_WM_CLOSE_REQUEST \

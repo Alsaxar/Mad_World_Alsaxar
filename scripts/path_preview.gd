@@ -10,6 +10,7 @@ var _end := Vector2.ZERO
 var _end_color := COLOR_OK
 var _active := false
 
+# Сохраняет переданный путь и число доступных шагов для отрисовки превью методом _draw.
 func show_path(path: PackedVector2Array, steps: int) -> void:
 	# steps: на сколько шагов хватает выносливости
 	_reachable = path.slice(0, steps + 1)
@@ -19,10 +20,12 @@ func show_path(path: PackedVector2Array, steps: int) -> void:
 	_active = true
 	queue_redraw()
 
+# Очищает данные превью и запрашивает перерисовку, убирая маршрут с экрана.
 func clear() -> void:
 	_active = false
 	queue_redraw()
 
+# Использует сохранённый путь и число шагов для отрисовки подсказки маршрута.
 func _draw() -> void:
 	if not _active:
 		return

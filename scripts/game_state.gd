@@ -60,12 +60,14 @@ var resource_remainders := {
 
 var resource_update_timer := 0.0
 
+# Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	last_resource_update_unix = int(
 		Time.get_unix_time_from_system()
 	)
 
 
+# Вызывается каждый кадр и получает прошедшее время delta. Использует его для обновления игровых таймеров и состояния.
 func _process(delta: float) -> void:
 	resource_update_timer += delta
 
@@ -80,6 +82,7 @@ func _process(delta: float) -> void:
 	second_tick.emit()
 
 
+# Рассчитывает почасовой доход по текущим зданиям и BuildingDB. Словарь результата используется для начисления ресурсов.
 func hourly_income() -> Dictionary:
 	var total := {
 		"gold": 0.0,
@@ -102,6 +105,7 @@ func hourly_income() -> Dictionary:
 	return total
 
 
+# Использует текущее или переданное Unix-время для расчёта дохода за интервал и обновляет запасы ресурсов.
 func update_resource_income(now_unix: int = -1) -> void:
 	if now_unix < 0:
 		now_unix = int(Time.get_unix_time_from_system())
@@ -159,6 +163,7 @@ func update_resource_income(now_unix: int = -1) -> void:
 	if gold_add > 0 or wood_add > 0 or ore_add > 0:
 		add_resources(gold_add, wood_add, ore_add)
 
+# Определяет вместимость склада для указанного ресурса. Ограничение применяется при начислении ресурсов.
 func resource_capacity(resource: String) -> int:
 	var capacity := BASE_RESOURCE_CAPACITY
 
@@ -172,24 +177,29 @@ func resource_capacity(resource: String) -> int:
 	return capacity
 
 
+# Прибавляет переданные ресурсы к запасам с учётом вместимости. Запасы используются покупками и интерфейсом.
 func add_resources(g := 0, w := 0, o := 0) -> void:
 	gold = clampi(gold + g, 0, resource_capacity("gold"))
 	wood = clampi(wood + w, 0, resource_capacity("wood"))
 	ore = clampi(ore + o, 0, resource_capacity("ore"))
 	resources_changed.emit()
 
+# Уменьшает выносливость на указанное количество. Новое значение ограничивает перемещение по карте.
 func spend_stamina(amount: float) -> void:
 	stamina = max(stamina - amount, 0.0)
 	stamina_changed.emit()
 
+# Восстанавливает выносливость по игровым правилам. Значение используется перемещением и индикатором.
 func restore_stamina() -> void:
 	stamina = MAX_STAMINA
 	stamina_changed.emit()
 
+# Добавляет выносливость в допустимых пределах. Результат влияет на доступность перемещения.
 func add_stamina(amount: float) -> void:
 	stamina = min(stamina + amount, MAX_STAMINA)
 	stamina_changed.emit()
 
+# Возвращает игровое состояние к стартовым значениям для новой игры.
 func reset() -> void:
 	gold = 100
 	wood = 50
@@ -212,6 +222,7 @@ func reset() -> void:
 	new_day()
 	resources_changed.emit()
 
+# Обрабатывает переход к новому игровому дню. Изменения используются ресурсной и игровой логикой.
 func new_day() -> void:
 	restore_stamina()
 	used_points.clear()
@@ -220,9 +231,11 @@ func new_day() -> void:
 #func can_recruit(count: int) -> bool:
 	#return gold >= RECRUIT_COST * count
 
+# Проверяет возможность найма по количеству бойцов и текущим ресурсам. Ответ определяет доступность найма.
 func can_recruit(count: int) -> bool:
 	return has_building("barracks") and gold >= RECRUIT_COST * count
 
+# Нанимает указанное количество бойцов и изменяет ресурсы и состояние армии.
 func recruit(count: int) -> void:
 	if not can_recruit(count):
 		return
@@ -230,6 +243,7 @@ func recruit(count: int) -> void:
 	army += count
 	resources_changed.emit()
 
+# Собирает текущее состояние в словарь, который SaveManager записывает в файл.
 func to_dict() -> Dictionary:
 	return {
 		"gold": gold,
@@ -261,6 +275,7 @@ func to_dict() -> Dictionary:
 	#stamina_changed.emit()
 	#buildings_changed.emit()
 
+# Восстанавливает состояние из словаря сохранения. Данные используются игровыми системами и интерфейсом.
 func load_from_dict(data: Dictionary) -> void:
 	var saved_buildings: Dictionary = data.get("buildings", {})
 	buildings = _migrate_legacy_ids(saved_buildings, true)
@@ -324,6 +339,7 @@ func load_from_dict(data: Dictionary) -> void:
 	buildings_changed.emit()
 
 
+# Преобразует старые идентификаторы слотов для совместимости сохранений.
 func _migrate_legacy_ids(
 	source: Dictionary,
 	is_buildings: bool
@@ -366,6 +382,7 @@ func _migrate_legacy_ids(
 
 	return migrated
 
+# Проверяет, построено ли здание в указанном слоте. Ответ используется условиями игровых действий.
 func has_building(slot: String) -> bool:
 	# true только для достроенного здания (уровень 1 и выше)
 	return buildings.has(slot) and int(buildings[slot].get("level", 1)) >= 1
@@ -373,14 +390,17 @@ func has_building(slot: String) -> bool:
 #func building_level(slot: String) -> int:
 	#return int(buildings[slot].get("level", 1))
 
+# Сравнивает текущие запасы со стоимостью. Результат определяет доступность действия.
 func can_afford(cost: Dictionary) -> bool:
 	return gold >= int(cost.get("gold", 0)) \
 			and wood >= int(cost.get("wood", 0)) \
 			and ore >= int(cost.get("ore", 0))
 
+# Списывает ресурсы согласно словарю стоимости. Новые запасы используются выполняемым действием и интерфейсом.
 func _pay(cost: Dictionary) -> void:
 	add_resources(-int(cost.get("gold", 0)), -int(cost.get("wood", 0)), -int(cost.get("ore", 0)))
 
+# Начинает строительство типа в слоте. Состояние и таймер используются игровыми системами и интерфейсом.
 func build(slot: String, type: String) -> void:
 	if buildings.has(slot):
 		return
@@ -434,6 +454,7 @@ func build(slot: String, type: String) -> void:
 	#resources_changed.emit()
 	#buildings_changed.emit()
 
+# Рассчитывает дневной доход по текущим постройкам. Словарь используется для отображения дохода.
 func daily_income() -> Dictionary:
 	var total := {"gold": 0, "wood": 0, "ore": 0}
 	for slot in buildings:
@@ -449,19 +470,23 @@ func daily_income() -> Dictionary:
 	#add_resources(income["gold"], income["wood"], income["ore"])
 	#new_day()
 
+# Обрабатывает завершение игрового дня и изменения состояния следующего дня.
 func end_day() -> void:
 	update_resource_income()
 	new_day()
 
+# Обрабатывает призыв элитного отряда по ресурсам и правилам игры.
 func summon_elite() -> void:
 	if not has_building("portal") or not can_afford(SUMMON_COST):
 		return
 	elite += 1
 	_pay(SUMMON_COST)  # сигнал обновит интерфейс уже с новым числом
 
+# Проверяет возможность лечения по запасам и состоянию армии. Ответ определяет доступность кнопки.
 func can_heal() -> bool:
 	return has_building("infirmary") and wounded > 0 and gold >= HEAL_COST
 
+# Запускает лечение с учётом ресурсов и правил. Изменения армии и таймера используются игрой и интерфейсом.
 func heal_wounded() -> void:
 	var count := mini(wounded, floori(gold / float(HEAL_COST)))
 	if not has_building("infirmary") or count <= 0:
@@ -471,6 +496,7 @@ func heal_wounded() -> void:
 	gold -= count * HEAL_COST
 	resources_changed.emit()
 
+# Регистрирует потери и рассчитывает раненых. Результат используется боевой системой.
 func register_casualties(count: int) -> int:
 	# половина погибших (с округлением вверх) попадает в лазарет, если он построен
 	if count <= 0 or not has_building("infirmary"):
@@ -479,17 +505,21 @@ func register_casualties(count: int) -> int:
 	wounded += hurt
 	return hurt
 
+# Возвращает текущее системное время в Unix-секундах для расчёта дохода и таймеров.
 func unix_now() -> int:
 	return int(Time.get_unix_time_from_system())
 
+# Проверяет, идёт ли строительство в слоте. Ответ используется интерфейсом и ограничениями строительства.
 func is_under_construction(slot: String) -> bool:
 	return buildings.has(slot) and int(buildings[slot].get("finish_at", 0)) > 0
 
+# Рассчитывает оставшееся время строительства для таймера и обработки завершения.
 func time_left(slot: String) -> int:
 	if not is_under_construction(slot):
 		return 0
 	return maxi(int(buildings[slot]["finish_at"]) - unix_now(), 0)
 
+# Проверяет игровые таймеры. Завершённые действия обновляют GameState.
 func process_timers(now: int = -1) -> void:
 	if now < 0:
 		now = unix_now()
@@ -511,12 +541,14 @@ func process_timers(now: int = -1) -> void:
 # Цена уровня N (N >= 2): базовая_цена * 2^(N-2)
 # Уровень 1 = только что построено.
 
+# Возвращает уровень здания из состояния. Значение используется расчётами дохода, стоимости и улучшений.
 func building_level(id: String) -> int:
 	if not buildings.has(id):
 		return 0
 	var b: Dictionary = buildings[id]
 	return int(b.get("level", 1))
 
+# Рассчитывает стоимость улучшения по типу и уровню здания. Словарь используется проверкой ресурсов и кнопкой.
 func upgrade_cost(slot: String) -> Dictionary:
 	if not has_building(slot):
 			return {}
@@ -530,11 +562,13 @@ func upgrade_cost(slot: String) -> Dictionary:
 	return result
 
 
+# Проверяет возможность улучшения и наличие ресурсов. Ответ определяет доступность действия.
 func can_upgrade(slot: String) -> bool:
 	if not has_building(slot):
 		return false
 	return can_afford(upgrade_cost(slot))
 
+# Улучшает здание после проверки условий и стоимости. Новый уровень используется дальнейшими расчётами.
 func upgrade_building(slot: String) -> void:
 	if not can_upgrade(slot):
 		return
@@ -552,6 +586,7 @@ func _can_afford(cost: Dictionary) -> bool:
 		and wood >= int(cost.get("wood", 0)) \
 		and ore >= int(cost.get("ore", 0))
 
+# Вспомогательно списывает ресурсы по стоимости для последующего действия.
 func _spend(cost: Dictionary) -> void:
 	gold -= int(cost.get("gold", 0))
 	wood -= int(cost.get("wood", 0))

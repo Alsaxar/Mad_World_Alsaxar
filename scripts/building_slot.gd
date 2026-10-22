@@ -11,17 +11,20 @@ var allowed_types: Array = []  # что здесь можно построить
 
 var _last_state := ""
 
+# Получает идентификатор слота, заголовок и список допустимых типов. Эти данные используются при обновлении слота и обработке действий.
 func setup(id: String, title: String, types: Array) -> void:
 	slot_id = id
 	slot_title = title
 	allowed_types = types
 
+# Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	GameState.buildings_changed.connect(refresh)
 	GameState.resources_changed.connect(refresh)
 	GameState.second_tick.connect(_update_timer_text)
 	refresh()
 
+# Строит ключ состояния по идентификатору слота. Ключ используется для чтения и изменения записи GameState.
 func _state_key() -> String:
 	# всё, от чего зависит вид слота; сами числа ресурсов не входят,
 	# входит только «хватает или нет», иначе слот перестраивался бы каждую секунду
@@ -33,6 +36,7 @@ func _state_key() -> String:
 			GameState.can_afford(GameState.SUMMON_COST), GameState.can_heal()])
 	return str(parts)
 
+# Читает данные слота из GameState и BuildingDB и обновляет подписи, стоимость и доступные кнопки.
 func refresh() -> void:
 	var key := _state_key()
 	if key == _last_state:
@@ -60,10 +64,12 @@ func refresh() -> void:
 			var text := "Построить: %s\n%s" % [BuildingDB.BUILDINGS[type]["name"], BuildingDB.format_cost(cost)]
 			_add_action(text, GameState.build.bind(slot_id, type), GameState.can_afford(cost))
 
+# Получает оставшееся время из GameState и обновляет текст таймера в слоте.
 func _update_timer_text() -> void:
 	if GameState.is_under_construction(slot_id):
 		info_label.text = "Осталось: %s" % BuildingDB.format_time(GameState.time_left(slot_id))
 
+# Формирует описание типа и уровня постройки по BuildingDB. Строка показывается в карточке слота.
 func _info_text(type: String, level: int) -> String:
 	match type:
 		"barracks":
@@ -79,6 +85,7 @@ func _info_text(type: String, level: int) -> String:
 		_:
 			return "Доход в день: %s" % BuildingDB.format_cost(BuildingDB.income_of(type, level))
 
+# Создаёт кнопки действий для построенного здания с учётом типа и состояния GameState.
 func _add_built_actions(type: String) -> void:
 	match type:
 		"barracks":
@@ -107,6 +114,7 @@ func _add_built_actions(type: String) -> void:
 		## можно показать сообщение «не хватает ресурсов»
 		#pass
 
+# Преобразует словарь стоимости в читаемую строку для описаний и кнопок.
 func _format_cost(cost: Dictionary) -> String:
 	var parts: Array[String] = []
 	if int(cost.get("gold", 0)) > 0: parts.append("%d зол." % cost["gold"])
@@ -114,6 +122,7 @@ func _format_cost(cost: Dictionary) -> String:
 	if int(cost.get("ore", 0)) > 0:  parts.append("%d руды" % cost["ore"])
 	return ", ".join(parts)
 
+# Создаёт кнопку с переданным текстом и обработчиком, учитывая доступность. Кнопка добавляется в интерфейс.
 func _add_action(text: String, action: Callable, enabled := true) -> void:
 	var button := Button.new()
 	button.text = text
@@ -124,6 +133,7 @@ func _add_action(text: String, action: Callable, enabled := true) -> void:
 	button.pressed.connect(_on_action_pressed.bind(action))
 	actions.add_child(button)
 
+# Вызывает обработчик выбранного действия. Изменённое состояние отображается при обновлении слота.
 func _on_action_pressed(action: Callable) -> void:
 	action.call()
 	SaveManager.save_game()

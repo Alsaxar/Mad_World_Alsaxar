@@ -25,6 +25,7 @@ var _preview_path := PackedVector2Array()
 var grid := AStarGrid2D.new()
 var _message_tween: Tween
 
+# Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	_build_grid()
 	hero.position = _cell_to_world(GameState.hero_cell)
@@ -46,6 +47,7 @@ func _ready() -> void:
 	_update_stamina_bar()
 	message_label.modulate.a = 0.0
 
+# Создаёт элементы глобальной карты и точки интереса по данным карты. Узлы используются для отображения и взаимодействия.
 func _build_grid() -> void:
 	grid.region = Rect2i(Vector2i.ZERO, MAP_CELLS)
 	grid.cell_size = Vector2(CELL, CELL)
@@ -84,10 +86,12 @@ func _build_grid() -> void:
 		#_show_message("Выносливость на исходе")
 	#hero.follow_path(path)
 
+# Обрабатывает завершение шага героя и обновляет выносливость и интерфейс карты.
 func _on_hero_step_finished() -> void:
 	GameState.spend_stamina(STAMINA_PER_STEP)
 	GameState.hero_cell = _world_to_cell(hero.position)
 
+# Обрабатывает окончание маршрута героя и обновляет состояние движения и интерфейс карты.
 func _on_hero_path_finished() -> void:
 	var cell := _world_to_cell(hero.position)
 	GameState.hero_cell = cell
@@ -96,6 +100,7 @@ func _on_hero_path_finished() -> void:
 			_interact(poi)
 	SaveManager.save_game()
 
+# Обрабатывает взаимодействие с точкой интереса. Результат отражается на карте и в GameState.
 func _interact(poi: Poi) -> void:
 	#var id := String(poi.name)
 	var id := String(poi.instance_id)
@@ -119,19 +124,23 @@ func _interact(poi: Poi) -> void:
 			GameState.battle_poi = id
 			SceneManager.change_scene("res://scenes/battle.tscn")
 
+# Помечает точку интереса использованной и обновляет её состояние.
 func _mark_used(poi: Poi) -> void:
 	#GameState.used_points[String(poi.name)] = true
 	GameState.used_points[String(poi.instance_id)] = true
 	poi.set_used(true)
 
+# Обрабатывает нажатие кнопки возврата домой и открывает домашнюю сцену.
 func _on_base_button_pressed() -> void:
 	hero.stop()
 	GameState.end_day()  # новая строка: доход от зданий и новый день
 	SceneManager.change_scene("res://scenes/base.tscn")
 
+# Получает выносливость из GameState и обновляет индикатор карты.
 func _update_stamina_bar() -> void:
 	stamina_bar.value = GameState.stamina
 
+# Выводит переданный текст в интерфейсе карты.
 func _show_message(text: String) -> void:
 	message_label.text = text
 	message_label.modulate.a = 1.0
@@ -141,12 +150,15 @@ func _show_message(text: String) -> void:
 	_message_tween.tween_interval(2.0)
 	_message_tween.tween_property(message_label, "modulate:a", 0.0, 0.5)
 
+# Преобразует мировые координаты в координаты ячейки для маршрута и выбора цели.
 func _world_to_cell(pos: Vector2) -> Vector2i:
 	return Vector2i((pos / CELL).floor())
 
+# Преобразует ячейку в мировую позицию для размещения узлов и движения героя.
 func _cell_to_world(cell: Vector2i) -> Vector2:
 	return Vector2(cell) * CELL + Vector2(CELL, CELL) / 2.0
 
+# Обрабатывает события ввода, используемые для выбора цели и управления картой.
 func _unhandled_input(event: InputEvent) -> void:
 	if hero.is_moving():
 		return  # во время движения касания по карте игнорируются
@@ -154,6 +166,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_map_clicked(get_global_mouse_position())
 
+# Обрабатывает клик по карте, определяет целевую ячейку и обновляет маршрут.
 func _on_map_clicked(world_pos: Vector2) -> void:
 	var target := _world_to_cell(world_pos)
 	if not grid.is_in_boundsv(target) or grid.is_point_solid(target):
@@ -163,9 +176,11 @@ func _on_map_clicked(world_pos: Vector2) -> void:
 	else:
 		_show_preview(target)
 
+# Определяет число доступных шагов по пути при текущей выносливости.
 func _affordable_steps(path: PackedVector2Array) -> int:
 	return mini(path.size() - 1, int(GameState.stamina / STAMINA_PER_STEP))
 
+# Строит превью маршрута к ячейке с учётом сетки и выносливости.
 func _show_preview(target: Vector2i) -> void:
 	var start := _world_to_cell(hero.position)
 	var path := grid.get_point_path(start, target)
@@ -184,6 +199,7 @@ func _show_preview(target: Vector2i) -> void:
 	else:
 		_show_message("Шагов: %d. Нажми ещё раз" % total)
 
+# Запускает движение героя по выбранному маршруту. Hero использует путь для перемещения.
 func _start_move() -> void:
 	var path := _preview_path
 	var steps := _affordable_steps(path)
@@ -193,6 +209,7 @@ func _start_move() -> void:
 		return
 	hero.follow_path(path.slice(0, steps + 1))
 
+# Очищает превью и убирает временную подсказку маршрута.
 func _clear_preview() -> void:
 	_has_preview = false
 	path_preview.clear()

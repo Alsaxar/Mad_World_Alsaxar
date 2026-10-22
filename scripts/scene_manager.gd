@@ -3,6 +3,7 @@ extends CanvasLayer
 var _fade: ColorRect
 var _busy := false
 
+# Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	layer = 100  # поверх всего
 	_fade = ColorRect.new()
@@ -12,6 +13,7 @@ func _ready() -> void:
 	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_fade)
 
+# Получает путь сцены и передаёт его механизму смены сцен Godot.
 func change_scene(path: String) -> void:
 	if _busy:
 		return  # защита от двойного нажатия

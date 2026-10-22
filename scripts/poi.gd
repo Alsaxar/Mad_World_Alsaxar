@@ -9,6 +9,7 @@ extends Node2D
 @onready var body: ColorRect = $Body
 @onready var name_label: Label = $NameLabel
 
+# Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	body.color = color
 	name_label.text = poi_name
@@ -16,5 +17,6 @@ func _ready() -> void:
 	if instance_id == &"":
 		push_warning("У объекта карты не назначен instance_id: " + str(name))
 
+# Устанавливает признак использования точки интереса, влияющий на отображение и дальнейшее взаимодействие.
 func set_used(used: bool) -> void:
 	modulate.a = 0.4 if used else 1.0
