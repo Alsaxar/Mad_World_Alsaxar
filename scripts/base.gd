@@ -5,7 +5,7 @@ const SLOT_SCENE := preload("res://scenes/ui/building_slot.tscn")
 @onready var map_button: Button = $Layout/MapButton
 #@onready var special_box: VBoxContainer = $Layout/Scroll/BaseWorld/Content/SpecialBuildings
 #@onready var resource_grid: GridContainer = $Layout/Scroll/BaseWorld/Content/ResourceGrid
-@onready var income_label: Label = $Layout/Scroll/BaseWorld/Content/IncomeLabel
+@onready var income_label: Label = $Layout/IncomeLabel
 @onready var building_layer: Control = $Layout/Scroll/BaseWorld/BuildingLayer
 @onready var building_positions: Control = $Layout/Scroll/BaseWorld/BuildingPositions
 

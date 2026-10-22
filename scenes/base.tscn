@@ -30,6 +30,11 @@ theme_override_constants/separation = 20
 [node name="ResourceBar" parent="Layout" instance=ExtResource("4_hh5oj")]
 layout_mode = 2
 
+[node name="IncomeLabel" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
 [node name="Scroll" type="ScrollContainer" parent="Layout"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -48,39 +53,6 @@ offset_bottom = 1544.0
 mouse_filter = 2
 texture = ExtResource("2_t45w4")
 stretch_mode = 6
-
-[node name="Content" type="VBoxContainer" parent="Layout/Scroll/BaseWorld"]
-custom_minimum_size = Vector2(2400, 1600)
-layout_mode = 0
-offset_right = 2400.0
-offset_bottom = 1600.0
-size_flags_horizontal = 3
-theme_override_constants/separation = 20
-
-[node name="SpecialTitle" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "Замок"
-
-[node name="SpecialBuildings" type="VBoxContainer" parent="Layout/Scroll/BaseWorld/Content"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="ResourceTitle" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "Ресурсные здания"
-
-[node name="IncomeLabel" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-autowrap_mode = 3
-
-[node name="ResourceGrid" type="GridContainer" parent="Layout/Scroll/BaseWorld/Content"]
-layout_mode = 2
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
-columns = 2
 
 [node name="BuildingLayer" type="Control" parent="Layout/Scroll/BaseWorld"]
 layout_mode = 1
