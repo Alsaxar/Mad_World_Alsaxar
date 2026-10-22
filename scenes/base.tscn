@@ -18,14 +18,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_h5ip5")
 
-[node name="Background" type="TextureRect" parent="."]
-custom_minimum_size = Vector2(2400, 1600)
-layout_mode = 1
-offset_right = 1672.0
-offset_bottom = 941.0
-texture = ExtResource("2_t45w4")
-stretch_mode = 6
-
 [node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -43,32 +35,48 @@ layout_mode = 2
 size_flags_vertical = 3
 scroll_deadzone = 15
 
-[node name="Content" type="VBoxContainer" parent="Layout/Scroll"]
+[node name="BaseWorld" type="Control" parent="Layout/Scroll"]
 custom_minimum_size = Vector2(2400, 1600)
 layout_mode = 2
+
+[node name="Background" type="TextureRect" parent="Layout/Scroll/BaseWorld"]
+custom_minimum_size = Vector2(2400, 1600)
+layout_mode = 1
+offset_top = -56.0
+offset_right = 2400.0
+offset_bottom = 1544.0
+mouse_filter = 2
+texture = ExtResource("2_t45w4")
+stretch_mode = 6
+
+[node name="Content" type="VBoxContainer" parent="Layout/Scroll/BaseWorld"]
+custom_minimum_size = Vector2(2400, 1600)
+layout_mode = 0
+offset_right = 2400.0
+offset_bottom = 1600.0
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="SpecialTitle" type="Label" parent="Layout/Scroll/Content"]
+[node name="SpecialTitle" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Замок"
 
-[node name="SpecialBuildings" type="VBoxContainer" parent="Layout/Scroll/Content"]
+[node name="SpecialBuildings" type="VBoxContainer" parent="Layout/Scroll/BaseWorld/Content"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="ResourceTitle" type="Label" parent="Layout/Scroll/Content"]
+[node name="ResourceTitle" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Ресурсные здания"
 
-[node name="IncomeLabel" type="Label" parent="Layout/Scroll/Content"]
+[node name="IncomeLabel" type="Label" parent="Layout/Scroll/BaseWorld/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 autowrap_mode = 3
 
-[node name="ResourceGrid" type="GridContainer" parent="Layout/Scroll/Content"]
+[node name="ResourceGrid" type="GridContainer" parent="Layout/Scroll/BaseWorld/Content"]
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
