@@ -63,29 +63,6 @@ func _build_grid() -> void:
 			for y in range(first.y, last.y + 1):
 				grid.set_point_solid(Vector2i(x, y), true)
 
-#func _unhandled_input(event: InputEvent) -> void:
-	#if event is InputEventMouseButton and event.pressed \
-			#and event.button_index == MOUSE_BUTTON_LEFT:
-		#_move_hero_to(get_global_mouse_position())
-
-#func _move_hero_to(world_pos: Vector2) -> void:
-	#var target := _world_to_cell(world_pos)
-	#var start := _world_to_cell(hero.position)
-	#if not grid.is_in_boundsv(target) or grid.is_point_solid(target):
-		#return
-	#var path := grid.get_point_path(start, target)
-	#if path.is_empty():
-		#return
-#
-	#var affordable := int(GameState.stamina / STAMINA_PER_STEP)
-	#if affordable == 0:
-		#_show_message("Нет сил. Вернись в замок")
-		#return
-	#if path.size() - 1 > affordable:
-		#path = path.slice(0, affordable + 1)
-		#_show_message("Выносливость на исходе")
-	#hero.follow_path(path)
-
 # Обрабатывает завершение шага героя и обновляет выносливость и интерфейс карты.
 func _on_hero_step_finished() -> void:
 	GameState.spend_stamina(STAMINA_PER_STEP)

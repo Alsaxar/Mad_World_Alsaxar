@@ -18,6 +18,29 @@ const BUILDING_GOLD_MINE: StringName = &"gold_mine"
 const BUILDING_SAWMILL: StringName = &"sawmill"
 const BUILDING_ORE_MINE: StringName = &"ore_mine"
 
+# Типы войск из казармы.
+const ARMY_SWORDMAN: StringName = &"swordman"
+const ARMY_BOWMAN: StringName = &"bowman"
+const ARMY_CAVALRYMAN: StringName = &"cavalryman"
+
+# Типы особых войск из портала.
+const ARMY_GRIFFIN: StringName = &"griffin"
+const ARMY_ICE_PHOENIX: StringName = &"ice_phoenix"
+const ARMY_ENT: StringName = &"ent"
+
+# Типы особенностей войск.
+const ARMY_FLY: StringName = &"fly"
+const ARMY_GROUND: StringName = &"ground"
+const ARMY_HEAVY: StringName = &"heavy"
+const ARMY_LIGHT: StringName = &"light"
+const ARMY_SMALL: StringName = &"small"
+const ARMY_MEDIUM_SIZE: StringName = &"medium_size"
+const ARMY_MASSIVE: StringName = &"Massive"
+
+# Типы активных способностей героя.
+const HERO_HEAL: StringName = &"heal"
+const HERO_FIREBALL: StringName = &"fireball"
+
 # Типы объектов глобальной карты.
 const POI_GOLD_MINE: StringName = &"gold_mine"
 const POI_BANDIT_CAMP: StringName = &"bandit_camp"

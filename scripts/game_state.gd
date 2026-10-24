@@ -9,7 +9,7 @@ signal second_tick
 signal building_completed(slot: String)
 
 const MAX_STAMINA := 100.0
-const BASE_RESOURCE_CAPACITY := 500
+const BASE_RESOURCE_CAPACITY := 200
 const START_CELL := Vector2i(2, 2)  # клетка замка на карте
 
 const RECRUIT_COST := 30  # золота за одного бойца
@@ -416,44 +416,6 @@ func build(slot: String, type: String) -> void:
 	_pay(cost)  # внутри сигнал resources_changed, здание уже записано
 	buildings_changed.emit()
 
-# Оставил в качестве примера для самого себя
-
-#func warehouse_upgrade_cost() -> Dictionary:
-	#if not has_building("warehouse"):
-		#return {}
-#
-	#var level := building_level("warehouse")
-#
-	#return {
-		#"gold": WAREHOUSE_UPGRADE_BASE_COST["gold"] * level,
-		#"wood": WAREHOUSE_UPGRADE_BASE_COST["wood"] * level,
-		#"ore": WAREHOUSE_UPGRADE_BASE_COST["ore"] * level
-	#}
-
-
-#func can_upgrade_warehouse() -> bool:
-	#if not has_building("warehouse"):
-		#return false
-#
-	#return can_afford(warehouse_upgrade_cost())
-
-
-#func upgrade_warehouse() -> void:
-	#if not can_upgrade_warehouse():
-		#return
-#
-	#var cost := warehouse_upgrade_cost()
-	#var building: Dictionary = buildings["warehouse"]
-#
-	#building["level"] = int(building.get("level", 1)) + 1
-	#buildings["warehouse"] = building
-#
-	#_pay(cost)
-#
-	## После повышения лимита уведомляем интерфейс ресурсов.
-	#resources_changed.emit()
-	#buildings_changed.emit()
-
 # Рассчитывает дневной доход по текущим постройкам. Словарь используется для отображения дохода.
 func daily_income() -> Dictionary:
 	var total := {"gold": 0, "wood": 0, "ore": 0}
@@ -463,12 +425,6 @@ func daily_income() -> Dictionary:
 		for res in income:
 			total[res] += income[res]
 	return total
-
-#func end_day() -> void:
-	## возвращение в замок: доход от зданий + новый день
-	#var income := daily_income()
-	#add_resources(income["gold"], income["wood"], income["ore"])
-	#new_day()
 
 # Обрабатывает завершение игрового дня и изменения состояния следующего дня.
 func end_day() -> void:
