@@ -8,6 +8,8 @@ signal buildings_changed
 signal second_tick
 signal building_completed(slot: String)
 
+signal units_changed
+
 const MAX_STAMINA := 100.0
 const BASE_RESOURCE_CAPACITY := 200
 const START_CELL := Vector2i(2, 2)  # клетка замка на карте
@@ -35,7 +37,17 @@ var gold := 100
 var wood := 50
 var ore := 20
 var stamina := MAX_STAMINA
-var army := 10
+#var army := 10
+var units := {"swordman": 10}    # тип войск -> сколько бойцов
+var training := {}               # тип войск -> {"count": N, "finish_at": unix}
+var open_building := "barracks"  # в какое здание мы зашли (слот)
+
+# Общее число бойцов. Бой и лазарет по-прежнему читают и пишут GameState.army.
+var army: int:
+	get:
+		return total_units()
+	set(value):
+		_set_total_units(value)
 
 var elite := 0       # особые войска из портала
 var wounded := 0     # раненые в лазарете
@@ -74,8 +86,6 @@ func _process(delta: float) -> void:
 	if resource_update_timer < RESOURCE_UPDATE_INTERVAL:
 		return
 
-	resource_update_timer = 0.0
-	update_resource_income()
 	resource_update_timer = 0.0
 	update_resource_income()
 	process_timers()
@@ -204,7 +214,9 @@ func reset() -> void:
 	gold = 100
 	wood = 50
 	ore = 20
-	army = 10
+	#army = 10
+	units = {"swordman": 10}
+	training = {}
 	elite = 0
 	wounded = 0
 	buildings.clear()
@@ -253,6 +265,8 @@ func to_dict() -> Dictionary:
 		"army": army,
 		"elite": elite,
 		"wounded": wounded,
+		"units": units,
+		"training": training,
 		"buildings": buildings,
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"used_points": used_points,
@@ -288,7 +302,13 @@ func load_from_dict(data: Dictionary) -> void:
 		0.0,
 		MAX_STAMINA
 	)
-	army = int(data.get("army", 10))
+	#army = int(data.get("army", 10))
+	var saved_units: Dictionary = data.get("units", {})
+	if saved_units.is_empty():
+		saved_units = {"swordman": int(data.get("army", 10))}  # старое сохранение
+	units = saved_units
+	training = data.get("training", {})
+	
 	elite = int(data.get("elite", 0))
 	wounded = int(data.get("wounded", 0))
 
@@ -491,6 +511,17 @@ func process_timers(now: int = -1) -> void:
 		building_completed.emit(slot)
 	if not finished.is_empty():
 		buildings_changed.emit()
+	
+	# Завершённые наймы войск
+	var hired: Array = []
+	for unit_id in training:
+		if now >= int(training[unit_id]["finish_at"]):
+			hired.append(unit_id)
+	for unit_id in hired:
+		units[unit_id] = int(units.get(unit_id, 0)) + int(training[unit_id]["count"])
+		training.erase(unit_id)
+	if not hired.is_empty():
+		units_changed.emit()
 
 # ─── Улучшение зданий ───────────────────────────────────────────
 # Базовая стоимость берётся из BuildingDB.BUILDINGS[id]["cost"] (или "upgrade_cost")
@@ -536,15 +567,78 @@ func upgrade_building(slot: String) -> void:
 	resources_changed.emit()
 	buildings_changed.emit()
 
-# Вспомогательные (если их ещё нет):
-func _can_afford(cost: Dictionary) -> bool:
-	return gold >= int(cost.get("gold", 0)) \
-		and wood >= int(cost.get("wood", 0)) \
-		and ore >= int(cost.get("ore", 0))
+# Новые функции
+# Считает количество всех юнитов из казарм и портала
+func total_units() -> int:
+	var total := 0
+	for id in units:
+		total += int(units[id])
+	return total
 
-# Вспомогательно списывает ресурсы по стоимости для последующего действия.
-func _spend(cost: Dictionary) -> void:
-	gold -= int(cost.get("gold", 0))
-	wood -= int(cost.get("wood", 0))
-	ore -= int(cost.get("ore", 0))
-	resources_changed.emit()
+func _set_total_units(value: int) -> void:
+	var diff := value - total_units()
+	if diff > 0:
+		units["swordman"] = int(units.get("swordman", 0)) + diff
+	elif diff < 0:
+		_remove_units(-diff)
+
+func _remove_units(amount: int) -> void:
+	# убираем бойцов по одному из самого многочисленного типа
+	while amount > 0:
+		var biggest := ""
+		for id in units:
+			if int(units[id]) > 0 and (biggest == "" or int(units[id]) > int(units[biggest])):
+				biggest = str(id)
+		if biggest == "":
+			return
+		units[biggest] = int(units[biggest]) - 1
+		amount -= 1
+
+func resource_amount(res: String) -> int:
+	match res:
+		"gold":
+			return gold
+		"wood":
+			return wood
+		"ore":
+			return ore
+	return 0
+
+func unit_total_cost(unit_id: String, count: int) -> Dictionary:
+	var cost: Dictionary = ArmyDB.UNITS[unit_id]["cost"]
+	var result := {}
+	for res in cost:
+		result[res] = int(cost[res]) * count
+	return result
+
+func max_hire(unit_id: String) -> int:
+	# сколько бойцов можно заказать на текущие ресурсы
+	var best := ArmyDB.MAX_HIRE_BATCH
+	var cost: Dictionary = ArmyDB.UNITS[unit_id]["cost"]
+	for res in cost:
+		var per_unit := int(cost[res])
+		if per_unit > 0:
+			best = mini(best, floori(resource_amount(res) / float(per_unit)))
+	return best
+
+func is_unit_available(unit_id: String) -> bool:
+	var data: Dictionary = ArmyDB.UNITS[unit_id]
+	var slot := str(data["building"])
+	return has_building(slot) and building_level(slot) >= int(data.get("min_level", 1))
+
+func start_hire(unit_id: String, count: int) -> void:
+	if count <= 0 or training.has(unit_id) or not is_unit_available(unit_id):
+		return
+	if count > max_hire(unit_id):
+		return
+	training[unit_id] = {
+		"count": count,
+		"finish_at": unix_now() + ArmyDB.train_time(unit_id, count),
+	}
+	_pay(unit_total_cost(unit_id, count))  # сигнал resources_changed; заказ уже записан
+	units_changed.emit()
+
+func training_time_left(unit_id: String) -> int:
+	if not training.has(unit_id):
+		return 0
+	return maxi(int(training[unit_id]["finish_at"]) - unix_now(), 0)

@@ -26,6 +26,16 @@ const BUILD_TIMES := {
 	"warehouse": 40, "gold_mine": 30, "sawmill": 30, "ore_mine": 30,
 }
 
+# Сцены зданий. Ресурсных зданий здесь нет: зайти в них нельзя.
+# Портал пока использует сцену казарм: набор карточек выбирается по GameState.open_building.
+const BUILDING_SCENES := {
+	"barracks": "res://scenes/barracks.tscn",
+	"portal": "res://scenes/barracks.tscn",
+}
+
+static func scene_of(type: String) -> String:
+	return str(BUILDING_SCENES.get(type, ""))
+
 static func format_cost(cost: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for res in cost:

@@ -22,6 +22,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 autowrap_mode = 3
 
-[node name="Actions" type="VBoxContainer" parent="Box"]
+[node name="Menu" type="MenuButton" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 8
+focus_mode = 0

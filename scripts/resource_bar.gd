@@ -14,9 +14,8 @@ extends PanelContainer
 # Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	GameState.resources_changed.connect(_update)
-	#gold_icon.color = Color(1.0, 0.82, 0.0)
-	#wood_icon.color = Color(0.5,0.3,0.1)
-	#ore_icon.color = Color(0.6,0.6,0.7)
+	GameState.units_changed.connect(_update)
+	
 	_update()
 
 # Читает текущие ресурсы из GameState и обновляет подписи панели ресурсов.

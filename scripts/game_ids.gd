@@ -35,7 +35,7 @@ const ARMY_HEAVY: StringName = &"heavy"
 const ARMY_LIGHT: StringName = &"light"
 const ARMY_SMALL: StringName = &"small"
 const ARMY_MEDIUM_SIZE: StringName = &"medium_size"
-const ARMY_MASSIVE: StringName = &"Massive"
+const ARMY_MASSIVE: StringName = &"massive"
 
 # Типы активных способностей героя.
 const HERO_HEAL: StringName = &"heal"

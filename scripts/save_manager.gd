@@ -7,6 +7,10 @@ const BASE_SCENE := "res://scenes/base.tscn"
 const MAP_SCENE := "res://scenes/world_map.tscn"
 const BATTLE_SCENE := "res://scenes/battle.tscn"
 
+const BARRACKS_SCENE := "res://scenes/barracks.tscn"
+
+
+
 # Проверяет наличие файла сохранения. Ответ используется меню для доступности продолжения игры.
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
@@ -22,6 +26,8 @@ func save_game(scene_path := "") -> void:
 	# запоминаем только «безопасные» сцены; бой при загрузке заменяется картой
 	if scene_path == BASE_SCENE or scene_path == MAP_SCENE:
 		GameState.current_scene = scene_path
+	elif scene_path == BARRACKS_SCENE:
+		GameState.current_scene = BASE_SCENE  # внутри здания: «Продолжить» вернёт на базу
 	elif scene_path != BATTLE_SCENE:
 		return  # в главном меню сохранять нечего
 

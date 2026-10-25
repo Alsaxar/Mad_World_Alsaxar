@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b3n1odeqcrpr3"]
 
+[ext_resource type="Script" uid="uid://dsja682cpqmbt" path="res://scripts/barracks.gd" id="1_l6ojf"]
 [ext_resource type="PackedScene" uid="uid://c1l8sv6v2a80n" path="res://scenes/ui/resource_bar.tscn" id="1_lery3"]
-[ext_resource type="PackedScene" uid="uid://dd8fatoyf1n7u" path="res://scenes/army_slot.tscn" id="2_lery3"]
 
 [node name="Barracks" type="Control"]
 layout_mode = 3
@@ -10,8 +10,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_l6ojf")
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="."]
+[node name="ContentArmy" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,18 +23,21 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 100
 
-[node name="ScrollArmy" type="ScrollContainer" parent="VBoxContainer2"]
+[node name="ScrollArmy" type="ScrollContainer" parent="ContentArmy"]
 clip_contents = false
 layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 scroll_deadzone = 15
 
-[node name="ArmySlot" parent="VBoxContainer2/ScrollArmy" instance=ExtResource("2_lery3")]
+[node name="CardList" type="VBoxContainer" parent="ContentArmy/ScrollArmy"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
 
-[node name="UI" type="CanvasLayer" parent="VBoxContainer2"]
+[node name="UI" type="CanvasLayer" parent="ContentArmy"]
 
-[node name="Label" type="Label" parent="VBoxContainer2/UI"]
+[node name="Label" type="Label" parent="ContentArmy/UI"]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -47,7 +51,7 @@ grow_vertical = 0
 text = "Глобальная карта"
 vertical_alignment = 1
 
-[node name="Base_Button" type="Button" parent="VBoxContainer2/UI"]
+[node name="Base_Button" type="Button" parent="ContentArmy/UI"]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -60,16 +64,16 @@ grow_vertical = 0
 theme_override_font_sizes/font_size = 36
 text = "Вернуться"
 
-[node name="Top" type="VBoxContainer" parent="VBoxContainer2/UI"]
+[node name="Top" type="VBoxContainer" parent="ContentArmy/UI"]
 anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 103.0
 grow_horizontal = 2
 
-[node name="ResourceBar" parent="VBoxContainer2/UI/Top" instance=ExtResource("1_lery3")]
+[node name="ResourceBar" parent="ContentArmy/UI/Top" instance=ExtResource("1_lery3")]
 layout_mode = 2
 
-[node name="MessageLabel" type="Label" parent="VBoxContainer2/UI/Top"]
+[node name="MessageLabel" type="Label" parent="ContentArmy/UI/Top"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 0.011764706, 1)
