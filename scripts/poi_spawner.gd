@@ -2,7 +2,13 @@ class_name PoiSpawner
 extends Node
 
 const POI_SCENE := preload("res://scenes/poi.tscn")
-const STATUS_UPDATE_RADIUS := 3000.0  # подписи обновляем только у ближних точек
+const STATUS_UPDATE_RADIUS := 30.0  # подписи обновляем только у ближних точек
+
+# Размер одного сектора карты в клетках.
+const SECTOR_SIZE := 32
+
+# Сектор -> список ID точек, находящихся в нём.
+var _sector_index: Dictionary = {}
 
 const KINDS := {
 	"mine": {"name": "Шахта", "color": Color(0.36, 0.4, 0.47)},
@@ -43,7 +49,7 @@ var _nearby_nodes_dirty := true #признак того, что список н
 func _ready() -> void:
 	if GameState.map_pois.is_empty():
 		_generate_all()
-		
+	_build_sector_index()
 	_process_expired()  # догоняем таймеры, пока игрок был на базе
 	_refresh_next_respawn_at()
 	_spawn_nodes()
@@ -101,6 +107,7 @@ func regenerate_world() -> void:
 	GameState.map_pois.clear()
 	GameState.used_points.clear()
 	_generate_all()
+	_build_sector_index()
 	_spawn_nodes()
 	_refresh_next_respawn_at()
 
@@ -207,3 +214,21 @@ func _refresh_next_respawn_at() -> void:
 
 		if _next_respawn_at == 0 or respawn_at < _next_respawn_at:
 			_next_respawn_at = respawn_at
+
+# Распределяет все точки карты по секторам.
+# Входные данные: GameState.map_pois с координатами всех точек.
+# Результат: словарь, где ключ — координаты сектора, значение — массив ID точек.
+# Индекс будет использоваться для поиска и загрузки ближайших секторов.
+func _build_sector_index() -> void:
+	_sector_index.clear()
+
+	for id in GameState.map_pois:
+		var rec: Dictionary = GameState.map_pois[id]
+		var cell := _cell_of(rec)
+		var sector := Vector2i(
+			floori(float(cell.x) / SECTOR_SIZE),
+			floori(float(cell.y) / SECTOR_SIZE)
+		)
+		if not _sector_index.has(sector):
+			_sector_index[sector] = []
+		_sector_index[sector].append(str(id))
