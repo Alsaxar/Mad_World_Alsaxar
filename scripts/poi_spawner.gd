@@ -36,6 +36,9 @@ const KINDS := {
 
 var _nodes := {}  # id точки -> узел Poi
 var _next_respawn_at := 0
+var _nearby_nodes: Dictionary = {} #словарь точек, для которых нужно обновлять подписи
+var _last_status_center := Vector2.INF #последняя позиция камеры, относительно которой рассчитан список
+var _nearby_nodes_dirty := true #признак того, что список нужно пересчитать
 
 func _ready() -> void:
 	if GameState.map_pois.is_empty():
@@ -93,6 +96,8 @@ func regenerate_world() -> void:
 	for child in points.get_children():
 		child.queue_free()
 	_nodes.clear()
+	_nearby_nodes.clear()
+	_nearby_nodes_dirty = true
 	GameState.map_pois.clear()
 	GameState.used_points.clear()
 	_generate_all()
@@ -119,17 +124,40 @@ func _create_node(id: String) -> void:
 	_update_status(id, poi, GameState.unix_now())
 
 # ─── Таймеры ───
+
+# Обновляет таймеры точек и проверяет ближайшие к камере объекты.
+# Использует кэш, чтобы не перебирать все точки каждую секунду без необходимости.
 func _on_second_tick() -> void:
 	var now := GameState.unix_now()
+
 	if _next_respawn_at > 0 and now >= _next_respawn_at:
 		_process_expired(now)
 		_refresh_next_respawn_at()
+
 	var cam := get_viewport().get_camera_2d()
 	var center := cam.get_screen_center_position() if cam else Vector2.ZERO
+
+	if _nearby_nodes_dirty or center != _last_status_center:
+		_refresh_nearby_nodes(center)
+
+	for id in _nearby_nodes:
+		var poi: Poi = _nearby_nodes[id]
+		if is_instance_valid(poi):
+			_update_status(str(id), poi, now)
+
+# Пересчитывает список точек рядом с камерой.
+# Результат используется секундным обновлением статусов.
+func _refresh_nearby_nodes(center: Vector2) -> void:
+	_nearby_nodes.clear()
+
 	for id in _nodes:
 		var poi: Poi = _nodes[id]
+
 		if poi.position.distance_to(center) <= STATUS_UPDATE_RADIUS:
-			_update_status(str(id), poi, now)
+			_nearby_nodes[id] = poi
+
+	_last_status_center = center
+	_nearby_nodes_dirty = false
 
 func _process_expired(now: int = -1) -> void:
 	if now < 0:
@@ -155,6 +183,7 @@ func _respawn(id: String, now: int, rng: RandomNumberGenerator) -> void:
 	if poi:
 		poi.position = MapMath.cell_to_world(_cell_of(rec))
 		poi.set_used(false)
+		_nearby_nodes_dirty = true
 
 func _update_status(id: String, poi: Poi, now: int) -> void:
 	var rec: Dictionary = GameState.map_pois[id]
