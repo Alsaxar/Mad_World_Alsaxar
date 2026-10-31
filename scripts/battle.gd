@@ -24,7 +24,8 @@ var won := false
 func _ready() -> void:
 	player_start = GameState.army
 	player_hp = player_start * PLAYER_UNIT_HP
-	enemy_hp = ENEMY_COUNT * ENEMY_UNIT_HP
+	var enemy_count := ENEMY_COUNT + GameState.battle_level - 1  # +1 разбойник за уровень
+	enemy_hp = enemy_count * ENEMY_UNIT_HP
 	player_bar.max_value = player_hp
 	enemy_bar.max_value = enemy_hp
 	action_button.pressed.connect(_on_action_pressed)
@@ -69,19 +70,6 @@ func _update_ui() -> void:
 	enemy_bar.value = enemy_hp
 	player_bar.value = player_hp
 
-#func _finish(victory: bool) -> void:
-	#finished = true
-	#won = victory
-	#action_button.text = "Продолжить"
-	#if victory:
-		#GameState.army = _count(player_hp, PLAYER_UNIT_HP)
-		#GameState.used_points[GameState.battle_poi] = true
-		#GameState.add_resources(REWARD_GOLD)
-		#log_label.text += "\n\nПобеда! Добыча: %d золота." % REWARD_GOLD
-	#else:
-		#GameState.army = maxi(roundi(player_start / 2.0), 1)
-		#log_label.text += "\n\nПоражение. Отряд отступает в замок, половина бойцов потеряна."
-
 # Завершает бой с учётом результата. Обновлённое состояние используется для показа итога.
 func _finish(victory: bool) -> void:
 	finished = true
@@ -90,8 +78,9 @@ func _finish(victory: bool) -> void:
 	if victory:
 		GameState.army = _count(player_hp, PLAYER_UNIT_HP)
 		GameState.used_points[GameState.battle_poi] = true
-		GameState.add_resources(REWARD_GOLD)
-		log_label.text += "\n\nПобеда! Добыча: %d золота." % REWARD_GOLD
+		var reward := REWARD_GOLD * GameState.battle_level
+		GameState.add_resources(reward)
+		log_label.text += "\n\nПобеда! Добыча: %d золота." % reward
 	else:
 		GameState.army = maxi(roundi(player_start / 2.0), 1)
 		log_label.text += "\n\nПоражение. Отряд отступает в замок."

@@ -15,8 +15,20 @@ mouse_filter = 2
 [node name="NameLabel" type="Label" parent="."]
 custom_minimum_size = Vector2(128, 0)
 offset_left = -64.0
-offset_top = -64.0
-offset_right = -24.0
-offset_bottom = -41.0
+offset_top = -92.0
+offset_right = 64.0
+offset_bottom = -66.0
 theme_override_font_sizes/font_size = 18
+text = "NameTest"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="StatusLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(160, 0)
+offset_left = -80.0
+offset_top = -116.0
+offset_right = 80.0
+offset_bottom = -90.0
+theme_override_font_sizes/font_size = 16
+text = "StatusTest"
 horizontal_alignment = 1

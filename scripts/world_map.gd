@@ -1,12 +1,15 @@
 extends Node2D
 
-const CELL := 64
-const MAP_CELLS := Vector2i(40, 40)
+const CELL := MapMath.CELL
+const MAP_CELLS := MapMath.MAP_CELLS
 const STAMINA_PER_STEP := 5.0
 
 const MINE_GOLD := 50
 const MINE_ORE := 10
 const ALTAR_STAMINA := 40.0
+
+const ALTAR_STAMINA_PER_LEVEL := 5.0  # прибавка к алтарю за каждый уровень выше первого
+const WINDOW_RADIUS := 60             # клеток вокруг героя, где ищем путь
 
 @onready var hero: Hero = $Hero
 @onready var camera: Camera2D = $Hero/Camera2D
@@ -27,7 +30,8 @@ var _message_tween: Tween
 
 # Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
-	_build_grid()
+	#_build_grid()
+	_setup_window(GameState.hero_cell)
 	hero.position = _cell_to_world(GameState.hero_cell)
 	camera.reset_smoothing()  # чтобы камера не «доезжала» от старой позиции
 	
@@ -48,20 +52,40 @@ func _ready() -> void:
 	message_label.modulate.a = 0.0
 
 # Создаёт элементы глобальной карты и точки интереса по данным карты. Узлы используются для отображения и взаимодействия.
-func _build_grid() -> void:
-	grid.region = Rect2i(Vector2i.ZERO, MAP_CELLS)
+#func _build_grid() -> void:
+	#grid.region = Rect2i(Vector2i.ZERO, MAP_CELLS)
+	#grid.cell_size = Vector2(CELL, CELL)
+	#grid.offset = Vector2(CELL, CELL) / 2.0
+	#grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+	#grid.update()
+#
+	#for obstacle: ColorRect in obstacles.get_children():
+		#var rect := obstacle.get_global_rect()
+		#var first := _world_to_cell(rect.position)
+		#var last := _world_to_cell(rect.end - Vector2.ONE)
+		#for x in range(first.x, last.x + 1):
+			#for y in range(first.y, last.y + 1):
+				#grid.set_point_solid(Vector2i(x, y), true)
+
+# Сетка поиска пути строится только вокруг героя: карта слишком велика для одной сетки
+func _setup_window(center: Vector2i) -> void:
+	var window_size := WINDOW_RADIUS * 2 + 1
+	var rect := Rect2i(center - Vector2i(WINDOW_RADIUS, WINDOW_RADIUS), Vector2i(window_size, window_size))
+	rect = rect.intersection(Rect2i(Vector2i.ZERO, MAP_CELLS))
+	grid.region = rect
 	grid.cell_size = Vector2(CELL, CELL)
 	grid.offset = Vector2(CELL, CELL) / 2.0
 	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 	grid.update()
 
 	for obstacle: ColorRect in obstacles.get_children():
-		var rect := obstacle.get_global_rect()
-		var first := _world_to_cell(rect.position)
-		var last := _world_to_cell(rect.end - Vector2.ONE)
+		var obstacle_rect := obstacle.get_global_rect()
+		var first := _world_to_cell(obstacle_rect.position)
+		var last := _world_to_cell(obstacle_rect.end - Vector2.ONE)
 		for x in range(first.x, last.x + 1):
 			for y in range(first.y, last.y + 1):
-				grid.set_point_solid(Vector2i(x, y), true)
+				if grid.is_in_boundsv(Vector2i(x, y)):
+					grid.set_point_solid(Vector2i(x, y), true)
 
 # Обрабатывает завершение шага героя и обновляет выносливость и интерфейс карты.
 func _on_hero_step_finished() -> void:
@@ -85,20 +109,40 @@ func _interact(poi: Poi) -> void:
 		_show_message("%s: сегодня здесь уже нечего делать" % poi.poi_name)
 		return
 
+	#match poi.kind: # Устарело
+		#"mine":
+			#GameState.add_resources(MINE_GOLD, 0, MINE_ORE)
+			#_mark_used(poi)
+			#_show_message("%s: +%d золота, +%d руды" % [poi.poi_name, MINE_GOLD, MINE_ORE])
+		#"altar":
+			#if GameState.stamina >= GameState.MAX_STAMINA:
+				#_show_message("%s: силы и так полны" % poi.poi_name)
+				#return
+			#GameState.add_stamina(ALTAR_STAMINA)
+			#_mark_used(poi)
+			#_show_message("%s: +%d выносливости" % [poi.poi_name, int(ALTAR_STAMINA)])
+		#"camp":
+			#GameState.battle_poi = id
+			#SceneManager.change_scene("res://scenes/battle.tscn")
+
 	match poi.kind:
 		"mine":
-			GameState.add_resources(MINE_GOLD, 0, MINE_ORE)
+			var gold := MINE_GOLD * poi.level
+			var ore := MINE_ORE * poi.level
+			GameState.add_resources(gold, 0, ore)
 			_mark_used(poi)
-			_show_message("%s: +%d золота, +%d руды" % [poi.poi_name, MINE_GOLD, MINE_ORE])
+			_show_message("%s (ур. %d): +%d золота, +%d руды" % [poi.poi_name, poi.level, gold, ore])
 		"altar":
 			if GameState.stamina >= GameState.MAX_STAMINA:
 				_show_message("%s: силы и так полны" % poi.poi_name)
 				return
-			GameState.add_stamina(ALTAR_STAMINA)
+			var amount := ALTAR_STAMINA + ALTAR_STAMINA_PER_LEVEL * (poi.level - 1)
+			GameState.add_stamina(amount)
 			_mark_used(poi)
-			_show_message("%s: +%d выносливости" % [poi.poi_name, int(ALTAR_STAMINA)])
+			_show_message("%s (ур. %d): +%d выносливости" % [poi.poi_name, poi.level, int(amount)])
 		"camp":
 			GameState.battle_poi = id
+			GameState.battle_level = poi.level
 			SceneManager.change_scene("res://scenes/battle.tscn")
 
 # Помечает точку интереса использованной и обновляет её состояние.
@@ -145,9 +189,20 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # Обрабатывает клик по карте, определяет целевую ячейку и обновляет маршрут.
 func _on_map_clicked(world_pos: Vector2) -> void:
+	#var target := _world_to_cell(world_pos)
+	#if not grid.is_in_boundsv(target) or grid.is_point_solid(target):
+		#return
 	var target := _world_to_cell(world_pos)
-	if not grid.is_in_boundsv(target) or grid.is_point_solid(target):
+	_setup_window(_world_to_cell(hero.position))  # сетка только вокруг героя
+	if not grid.is_in_boundsv(target):
+		_show_message("Слишком далеко")
 		return
+	if grid.is_point_solid(target):
+		return
+	if _has_preview and target == _preview_cell:
+		_start_move()
+	else:
+		_show_preview(target)
 	if _has_preview and target == _preview_cell:
 		_start_move()
 	else:

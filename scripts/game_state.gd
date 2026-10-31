@@ -10,9 +10,9 @@ signal building_completed(slot: String)
 
 signal units_changed
 
-const MAX_STAMINA := 100.0
+const MAX_STAMINA := 1000.0 # Тестовое значение 1000
 const BASE_RESOURCE_CAPACITY := 200
-const START_CELL := Vector2i(2, 2)  # клетка замка на карте
+const START_CELL := Vector2i(25, 500)  # клетка замка на карте
 
 const RECRUIT_COST := 30  # золота за одного бойца
 
@@ -56,6 +56,9 @@ var buildings := {}  # слот -> {"type": ..., "level": ...}
 var hero_cell := START_CELL
 var used_points := {}  # точки, уже использованные сегодня
 var battle_poi := ""   # какая точка запустила бой
+
+var battle_level := 1  # уровень точки, запустившей бой
+var map_pois := {}     # id точки -> {"kind", "level", "cell", "respawn_at"}
 
 var current_scene := "res://scenes/base.tscn"  # где игрок остановился
 
@@ -220,6 +223,8 @@ func reset() -> void:
 	elite = 0
 	wounded = 0
 	buildings.clear()
+	map_pois.clear()
+	used_points.clear()
 	last_resource_update_unix = int(
 		Time.get_unix_time_from_system()
 	)
@@ -237,7 +242,7 @@ func reset() -> void:
 # Обрабатывает переход к новому игровому дню. Изменения используются ресурсной и игровой логикой.
 func new_day() -> void:
 	restore_stamina()
-	used_points.clear()
+	#used_points.clear()
 	hero_cell = START_CELL
 
 #func can_recruit(count: int) -> bool:
@@ -270,6 +275,7 @@ func to_dict() -> Dictionary:
 		"buildings": buildings,
 		"hero_cell": [hero_cell.x, hero_cell.y],
 		"used_points": used_points,
+		"map_pois": map_pois,
 		"current_scene": current_scene,
 		"last_resource_update_unix": last_resource_update_unix,
 		"resource_remainders": resource_remainders,
@@ -321,12 +327,9 @@ func load_from_dict(data: Dictionary) -> void:
 	else:
 		hero_cell = START_CELL
 
-	
-	
-
 	var saved_points: Dictionary = data.get("used_points", {})
 	used_points = _migrate_legacy_ids(saved_points, false)
-
+	map_pois = data.get("map_pois", {})
 	current_scene = str(
 		data.get("current_scene", "res://scenes/base.tscn")
 	)
