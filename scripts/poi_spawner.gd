@@ -35,12 +35,16 @@ const KINDS := {
 @onready var points: Node2D = get_node("../Points")
 
 var _nodes := {}  # id точки -> узел Poi
+var _next_respawn_at := 0
 
 func _ready() -> void:
 	if GameState.map_pois.is_empty():
 		_generate_all()
+		
 	_process_expired()  # догоняем таймеры, пока игрок был на базе
+	_refresh_next_respawn_at()
 	_spawn_nodes()
+	
 	GameState.second_tick.connect(_on_second_tick)
 
 # ─── Генерация ───
@@ -93,6 +97,7 @@ func regenerate_world() -> void:
 	GameState.used_points.clear()
 	_generate_all()
 	_spawn_nodes()
+	_refresh_next_respawn_at()
 
 # ─── Узлы на карте ───
 func _spawn_nodes() -> void:
@@ -116,7 +121,9 @@ func _create_node(id: String) -> void:
 # ─── Таймеры ───
 func _on_second_tick() -> void:
 	var now := GameState.unix_now()
-	_process_expired(now)
+	if _next_respawn_at > 0 and now >= _next_respawn_at:
+		_process_expired(now)
+		_refresh_next_respawn_at()
 	var cam := get_viewport().get_camera_2d()
 	var center := cam.get_screen_center_position() if cam else Vector2.ZERO
 	for id in _nodes:
@@ -160,3 +167,14 @@ func _cell_array(cell: Vector2i) -> Array:
 func _cell_of(rec: Dictionary) -> Vector2i:
 	var a: Array = rec["cell"]
 	return Vector2i(int(a[0]), int(a[1]))
+
+# Находит ближайшее время обновления среди всех точек.
+# Результат используется для определения момента следующей проверки таймеров.
+func _refresh_next_respawn_at() -> void:
+	_next_respawn_at = 0
+
+	for id in GameState.map_pois:
+		var respawn_at := int(GameState.map_pois[id]["respawn_at"])
+
+		if _next_respawn_at == 0 or respawn_at < _next_respawn_at:
+			_next_respawn_at = respawn_at

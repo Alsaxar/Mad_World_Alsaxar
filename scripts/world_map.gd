@@ -208,10 +208,6 @@ func _on_map_clicked(world_pos: Vector2) -> void:
 		_start_move()
 	else:
 		_show_preview(target)
-	if _has_preview and target == _preview_cell:
-		_start_move()
-	else:
-		_show_preview(target)
 
 # Определяет число доступных шагов по пути при текущей выносливости.
 func _affordable_steps(path: PackedVector2Array) -> int:
