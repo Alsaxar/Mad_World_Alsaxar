@@ -4,7 +4,7 @@ extends Node2D
 signal step_finished
 signal path_finished
 
-const SPEED := 300.0
+const SPEED := 100.0
 
 var _path := PackedVector2Array()
 var _index := 0

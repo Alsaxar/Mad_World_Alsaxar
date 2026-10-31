@@ -18,6 +18,7 @@ const WINDOW_RADIUS := 60             # клеток вокруг героя, г
 @onready var stamina_bar: ProgressBar = $UI/Top/StaminaBar
 @onready var message_label: Label = $UI/Top/MessageLabel
 @onready var base_button: Button = $UI/Base_Button  # замени путь на свой
+@onready var hero_coordinates: Label = $UI/Hero_Coordinates
 
 @onready var path_preview: PathPreview = $PathPreview
 
@@ -50,6 +51,7 @@ func _ready() -> void:
 	stamina_bar.max_value = GameState.MAX_STAMINA
 	_update_stamina_bar()
 	message_label.modulate.a = 0.0
+	hero_coordinates_now()
 
 # Создаёт элементы глобальной карты и точки интереса по данным карты. Узлы используются для отображения и взаимодействия.
 #func _build_grid() -> void:
@@ -66,6 +68,8 @@ func _ready() -> void:
 		#for x in range(first.x, last.x + 1):
 			#for y in range(first.y, last.y + 1):
 				#grid.set_point_solid(Vector2i(x, y), true)
+func hero_coordinates_now():
+	hero_coordinates.text = "Координаты %s" % _world_to_cell(hero.position)
 
 # Сетка поиска пути строится только вокруг героя: карта слишком велика для одной сетки
 func _setup_window(center: Vector2i) -> void:
@@ -100,6 +104,7 @@ func _on_hero_path_finished() -> void:
 		if _world_to_cell(poi.position) == cell:
 			_interact(poi)
 	SaveManager.save_game()
+	hero_coordinates_now()
 
 # Обрабатывает взаимодействие с точкой интереса. Результат отражается на карте и в GameState.
 func _interact(poi: Poi) -> void:
