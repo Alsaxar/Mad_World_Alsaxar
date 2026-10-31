@@ -12,7 +12,7 @@ signal units_changed
 
 const MAX_STAMINA := 1000.0 # Тестовое значение 1000
 const BASE_RESOURCE_CAPACITY := 200
-const START_CELL := Vector2i(25, 500)  # клетка замка на карте
+const START_CELL := Vector2i(2, 2)  # клетка замка на карте
 
 const RECRUIT_COST := 30  # золота за одного бойца
 

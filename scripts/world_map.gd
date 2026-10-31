@@ -29,9 +29,14 @@ var _preview_path := PackedVector2Array()
 var grid := AStarGrid2D.new()
 var _message_tween: Tween
 
+# Кэш клеток карты, занятых препятствиями.
+# Заполняется один раз при загрузке карты и используется при настройке AStarGrid2D.
+var _obstacle_cells: Dictionary = {}
+
 # Вызывается Godot при добавлении узла в сцену. Получает ссылки на узлы и подключает сигналы; подготовленные данные используются обработчиками и интерфейсом.
 func _ready() -> void:
 	#_build_grid()
+	_cache_obstacle_cells()
 	_setup_window(GameState.hero_cell)
 	hero.position = _cell_to_world(GameState.hero_cell)
 	camera.reset_smoothing()  # чтобы камера не «доезжала» от старой позиции
@@ -82,14 +87,12 @@ func _setup_window(center: Vector2i) -> void:
 	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 	grid.update()
 
-	for obstacle: ColorRect in obstacles.get_children():
-		var obstacle_rect := obstacle.get_global_rect()
-		var first := _world_to_cell(obstacle_rect.position)
-		var last := _world_to_cell(obstacle_rect.end - Vector2.ONE)
-		for x in range(first.x, last.x + 1):
-			for y in range(first.y, last.y + 1):
-				if grid.is_in_boundsv(Vector2i(x, y)):
-					grid.set_point_solid(Vector2i(x, y), true)
+# Используем заранее рассчитанные клетки препятствий.
+	for cell in _obstacle_cells.keys():
+		var obstacle_cell: Vector2i = cell
+
+		if grid.is_in_boundsv(obstacle_cell):
+			grid.set_point_solid(obstacle_cell, true)
 
 # Обрабатывает завершение шага героя и обновляет выносливость и интерфейс карты.
 func _on_hero_step_finished() -> void:
@@ -246,3 +249,20 @@ func _start_move() -> void:
 func _clear_preview() -> void:
 	_has_preview = false
 	path_preview.clear()
+
+# Один раз преобразует прямоугольники препятствий в клетки карты.
+# Входные данные: узлы препятствий из контейнера obstacles.
+# Результат: словарь клеток, занятых препятствиями.
+# Используется функцией _setup_window() при построении сетки поиска пути.
+func _cache_obstacle_cells() -> void:
+	_obstacle_cells.clear()
+
+	for obstacle: ColorRect in obstacles.get_children():
+		var obstacle_rect := obstacle.get_global_rect()
+
+		var first := _world_to_cell(obstacle_rect.position)
+		var last := _world_to_cell(obstacle_rect.end - Vector2.ONE)
+
+		for x in range(first.x, last.x + 1):
+			for y in range(first.y, last.y + 1):
+				_obstacle_cells[Vector2i(x, y)] = true
