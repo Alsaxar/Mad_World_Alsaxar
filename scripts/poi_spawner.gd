@@ -10,6 +10,15 @@ const SECTOR_SIZE := 32
 # Сектор -> список ID точек, находящихся в нём.
 var _sector_index: Dictionary = {}
 
+# Сектора, узлы которых сейчас загружены.
+var _loaded_sectors: Dictionary = {}
+
+# Последний сектор, в котором находилась камера.
+var _last_loaded_center_sector := Vector2i(-9999, -9999)
+
+# Радиус загрузки в секторах: 1 означает область 3 × 3.
+const SECTOR_LOAD_RADIUS := 1
+
 const KINDS := {
 	"mine": {"name": "Шахта", "color": Color(0.36, 0.4, 0.47)},
 	"altar": {"name": "Алтарь света", "color": Color(1.0, 0.92, 0.6)},
@@ -102,6 +111,8 @@ func regenerate_world() -> void:
 	for child in points.get_children():
 		child.queue_free()
 	_nodes.clear()
+	_loaded_sectors.clear()
+	_last_loaded_center_sector = Vector2i(-9999, -9999)
 	_nearby_nodes.clear()
 	_nearby_nodes_dirty = true
 	GameState.map_pois.clear()
@@ -113,8 +124,10 @@ func regenerate_world() -> void:
 
 # ─── Узлы на карте ───
 func _spawn_nodes() -> void:
-	for id in GameState.map_pois:
-		_create_node(str(id))
+	var cam := get_viewport().get_camera_2d()
+	var center := cam.get_screen_center_position() if cam else MapMath.cell_to_world(GameState.hero_cell)
+	_last_loaded_center_sector = Vector2i(-9999, -9999)
+	_update_loaded_sectors(center)
 
 func _create_node(id: String) -> void:
 	var rec: Dictionary = GameState.map_pois[id]
@@ -128,6 +141,7 @@ func _create_node(id: String) -> void:
 	poi.position = MapMath.cell_to_world(_cell_of(rec))
 	points.add_child(poi)  # _ready точки вызывается здесь
 	_nodes[id] = poi
+	poi.set_used(GameState.used_points.has(id))
 	_update_status(id, poi, GameState.unix_now())
 
 # ─── Таймеры ───
@@ -143,7 +157,7 @@ func _on_second_tick() -> void:
 
 	var cam := get_viewport().get_camera_2d()
 	var center := cam.get_screen_center_position() if cam else Vector2.ZERO
-
+	_update_loaded_sectors(center)
 	if _nearby_nodes_dirty or center != _last_status_center:
 		_refresh_nearby_nodes(center)
 
@@ -232,3 +246,55 @@ func _build_sector_index() -> void:
 		if not _sector_index.has(sector):
 			_sector_index[sector] = []
 		_sector_index[sector].append(str(id))
+
+# Определяет сектор по мировой позиции.
+# Входные данные: мировые координаты камеры.
+# Результат: координаты сектора.
+# Используется при определении области загрузки.
+func _sector_from_world(position: Vector2) -> Vector2i:
+	var cell := Vector2i(
+		floori(position.x / MapMath.CELL),
+		floori(position.y / MapMath.CELL)
+	)
+
+	return Vector2i(
+		floori(float(cell.x) / SECTOR_SIZE),
+		floori(float(cell.y) / SECTOR_SIZE)
+	)
+
+# Загружает узлы точек в ближайших секторах и выгружает дальние.
+# Входные данные: текущая мировая позиция камеры.
+# Результат: в points находятся только узлы нужных секторов.
+func _update_loaded_sectors(center: Vector2) -> void:
+	var center_sector := _sector_from_world(center)
+	# Если камера осталась в прежнем секторе, ничего менять не нужно.
+	if center_sector == _last_loaded_center_sector:
+		return
+	_last_loaded_center_sector = center_sector
+	var desired_sectors: Dictionary = {}
+	# Формируем список секторов, которые должны быть загружены.
+	for x in range(-SECTOR_LOAD_RADIUS, SECTOR_LOAD_RADIUS + 1):
+		for y in range(-SECTOR_LOAD_RADIUS, SECTOR_LOAD_RADIUS + 1):
+			var sector := center_sector + Vector2i(x, y)
+			desired_sectors[sector] = true
+	# Выгружаем сектора, которые больше не нужны.
+	for sector in _loaded_sectors.keys():
+		if desired_sectors.has(sector):
+			continue
+		var ids: Array = _sector_index.get(sector, [])
+		for id in ids:
+			var poi: Poi = _nodes.get(id)
+			if is_instance_valid(poi):
+				poi.queue_free()
+			_nodes.erase(id)
+			_nearby_nodes.erase(id)
+		_loaded_sectors.erase(sector)
+	# Загружаем новые сектора.
+	for sector in desired_sectors:
+		if _loaded_sectors.has(sector):
+			continue
+		_loaded_sectors[sector] = true
+		var ids: Array = _sector_index.get(sector, [])
+		for id in ids:
+			_create_node(str(id))
+	_nearby_nodes_dirty = true
